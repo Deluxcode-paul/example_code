@@ -1,1 +1,1 @@
-Project: VPLUSE
+Project under NDA protection
