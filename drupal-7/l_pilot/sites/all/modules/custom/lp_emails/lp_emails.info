@@ -1,0 +1,9 @@
+name = LP Emails
+description = Provides Custom Email Functionality for LoyalPilot
+core = 7.x
+version = 7.x-1.2
+package = LoyalPilot
+
+dependencies[] = profile2
+dependencies[] = mailgun
+dependencies[] = elysia_cron

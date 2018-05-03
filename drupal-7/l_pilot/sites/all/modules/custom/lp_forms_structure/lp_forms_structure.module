@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the LP Forms Structure feature.
+ */
+
+include_once 'lp_forms_structure.features.inc';

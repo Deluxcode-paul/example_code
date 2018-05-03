@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * @file
+ * Installation functions for module lp_email.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function lp_emails_schema() {
+  $schema['customers_email_templates'] = array(
+    'description' => 'Keeps track of the customers that have received email templates',
+    'fields' => array(
+      'cnid' => array(
+        'description' => 'The nid of the Customer that has received this Email Template',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'enid' => array(
+        'description' => 'The nid of the Email Template',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'sent' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp for when email was sent.',
+      ),
+    ),
+    'unique keys' => array(
+      'cnid_enid' => array('cnid', 'enid'),
+      ),
+  );
+//TODO add opened tracking
+  return $schema;
+}
+
+/**
+ * Add sent column to the customers_email_templates table.
+ */
+function lp_emails_update_7101(&$sandbox) {
+  $fields = array(
+    'sent' => array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => 'Timestamp for when email was sent.',
+    ),
+  );
+
+  foreach ($fields as $key => $field)  {
+    if (!db_field_exists('customers_email_templates', $key)) {
+      db_add_field('customers_email_templates', $key, $field);
+    }
+  }
+}
+
+/**
+ * Mark all customers till yesterday as processed so that they do not receive duplicate emails.
+ */
+function lp_emails_update_7102(&$sandbox) {
+  $email_templates = db_query("
+    SELECT nid AS enid, uid FROM {node} n
+    WHERE n.type = 'email_template'
+  ")->fetchAll();
+
+  foreach ($email_templates as $email_template) {
+    $customers = db_query("
+      SELECT nid AS cnid FROM {node} n
+      LEFT JOIN {field_data_field_do_not_contact} dnc ON dnc.entity_id = n.nid
+      LEFT JOIN {field_data_field_exclude_from_automation} fea ON fea.entity_id = n.nid
+      WHERE n.type = 'customer'
+      AND n.uid = :uid
+      AND dnc.field_do_not_contact_value != 1
+      AND fea.field_exclude_from_automation_value != 1
+      AND n.nid NOT IN (
+        SELECT cnid FROM {customers_email_templates}
+        WHERE enid = :enid
+      )
+      ",
+      array(
+        ':uid' => $email_template->uid,
+        ':enid' => $email_template->enid
+      )
+    )->fetchAll();
+
+    foreach ($customers as $customer) {
+      db_insert('customers_email_templates')
+        ->fields(array(
+          'cnid' => $customer->cnid,
+          'enid' => $email_template->enid,
+          'sent' => time(),
+        ))
+        ->execute();
+    }
+  }
+}

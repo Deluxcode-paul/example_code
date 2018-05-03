@@ -1,0 +1,1079 @@
+<?php 
+
+/**
+ * Implements hook_permission().
+ */
+function lp_emails_permission() {
+  return array(
+    'send loyalpilot campaigns' => array(
+      'title' => t('Send LoyalPilot Campaigns'),
+      'description' => t('Allows users to send out campaigns to customers.'),
+    ),
+    'send loyalpilot email templates' => array(
+      'title' => t('Send LoyalPilot Email Templates'),
+      'description' => t('Allows users to send out email templates to customers.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function lp_emails_menu() {
+  $items = array();
+
+  $items['list-unsubscribe/%/%/%'] = array(
+    'title' => 'Unsubscribe from List',
+    'page callback' => 'lp_emails_unsubscribe_customer',
+    'page arguments' => array(1, 2),
+    'access callback' => 'lp_emails_unsubscribe_link_access',
+    'access arguments' => array(1,2,3),
+  );
+  $items['track-opens/%/%/%/%'] = array(
+    'title' => 'Track Email Opens',
+    'page callback' => 'lp_emails_track_opens',
+    'page arguments' => array(1, 2, 3, 4),
+    'access callback' => TRUE,
+  );
+  $items['admin/config/loyalpilot'] = array(
+    'title' => 'LoyalPilot',
+    'description' => 'LoyalPilot administration links',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'), 
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'position' => 'right', 
+  );
+  $items['admin/config/loyalpilot/overview'] = array(
+    'title' => 'Overview',
+    'description' => t('Review statistics about LP.') , 
+    'page callback' => 'lp_emails_overview',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM, 
+  );
+
+  return $items;
+}
+
+/**
+ * Page displaying general information about LP's usage.
+ */
+function lp_emails_overview() {
+  $header = array('Active Users', 'Emails Sent Last 30 Days', 'Total Emails Sent');
+  $customers = db_query("SELECT count(uid) FROM {stripe_customers} WHERE status = 1")->fetchField();
+  $total_emails = db_query("
+    SELECT count(entity_id) FROM {field_data_field_sent} fs
+    LEFT JOIN {node} n ON fs.entity_id = n.nid
+    WHERE fs.field_sent_value = 1
+  ")->fetchField();
+  $last_month_emails = db_query("
+    SELECT count(fs.entity_id) FROM {field_data_field_sent} fs
+    LEFT JOIN {field_data_field_send_date} fd ON fs.entity_id = fd.entity_id
+    WHERE fs.field_sent_value = 1
+    AND fd.field_send_date_value >= :date
+  ",
+  array(':date' => date('Y-m-d H:i:s', time()-30*24*60*60))
+  )->fetchField();
+  $rows = array(
+    array(
+      $customers,
+      $last_month_emails,
+      $total_emails,
+    ),
+  );
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+
+  $header = array('Name', 'Email', 'Emails Sent 30 Days', 'Emails Sent Total', 'Plan');
+  $rows = array();
+  $customers = db_query("SELECT sc.uid, mail FROM {stripe_customers} sc LEFT JOIN {users} u ON sc.uid = u.uid WHERE sc.status = 1")->fetchAll();
+  foreach ($customers as $customer) {
+    $profile = profile2_load_by_user($customer->uid);
+    if (!empty($profile['main']->field_user_first_name[LANGUAGE_NONE][0]['safe_value'])) {
+      $first = $profile['main']->field_user_first_name[LANGUAGE_NONE][0]['safe_value'];
+    } else {
+      $first = '';
+    }
+    if (!empty($profile['main']->field_user_last_name[LANGUAGE_NONE][0]['safe_value'])) {
+      $last = $profile['main']->field_user_last_name[LANGUAGE_NONE][0]['safe_value'];
+    } else {
+      $last = '';
+    }
+    $total_emails = db_query("
+      SELECT count(entity_id) FROM {field_data_field_sent} fs
+      LEFT JOIN {node} n ON fs.entity_id = n.nid
+      WHERE fs.field_sent_value = 1
+      AND n.uid = :uid
+    ",
+    array(':uid' => $customer->uid))->fetchField();
+    $last_month_emails = db_query("
+      SELECT count(fs.entity_id) FROM {field_data_field_sent} fs
+      LEFT JOIN {field_data_field_send_date} fd ON fs.entity_id = fd.entity_id
+      LEFT JOIN {node} n ON fs.entity_id = n.nid
+      WHERE fs.field_sent_value = 1
+      AND fd.field_send_date_value >= :date
+      AND n.uid = :uid
+    ",
+    array(
+      ':date' => date('Y-m-d H:i:s', time()-30*24*60*60),
+      ':uid' => $customer->uid,
+    )
+    )->fetchField();
+    $subscription = db_query("SELECT plan_id FROM {stripe_subscriptions} s WHERE s.uid = :uid", array(':uid' => $customer->uid))->fetchField();
+    $rows[] = array($first . ' ' . $last, $customer->mail, $last_month_emails, $total_emails, $subscription);
+    }
+  $output .= theme('table', array('header' => $header, 'rows' => $rows));
+  return $output;
+}
+
+/**
+ * Implements hook_form_node_form_alter().
+ */
+function lp_emails_form_node_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'campaign_node_form':
+      if (!user_access('administer site configuration')) {
+        $form['field_sent']['#access'] = FALSE;
+      }
+      $form['field_campaign_opens']['#access'] = FALSE;
+      $form['field_campaign_sent_count']['#access'] = FALSE;
+    case 'email_template_node_form':
+      $form['field_campaign_opens']['#access'] = FALSE;
+      global $user;
+      $profile = profile2_load_by_user($user->uid);
+      $from = $profile['main']->field_name[LANGUAGE_NONE][0]['value'] . ' <' . $profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'] . '>';
+      $form['#validate'][] = 'lp_emails_form_email_template_node_form_test_email_validate';
+      $form['actions']['submit']['#submit'][] = 'lp_emails_form_node_form_submit_redirect';
+
+      $form['from_address'] = array(
+        '#type' => 'textfield', 
+        '#title' => t('Sender\'s Name'), 
+        '#weight' => 0,
+        '#disabled' => TRUE,
+        '#default_value' => $from,
+        '#description' => t("The address that the email will be sent From. To change it please edit your <a href='/user/{$user->uid}/edit'>profile</a>"),
+      );
+      $form['send_test_email'] = array(
+        '#type' => 'fieldset', 
+        '#title' => t('Send Test Email'), 
+        '#weight' => 15, 
+        '#collapsible' => TRUE, 
+        '#collapsed' => FALSE,
+      );
+      $form['send_test_email']['test_email'] = array(
+        '#type' => 'textfield', 
+        '#title' => t('Test Address'), 
+        '#size' => 60, 
+        '#maxlength' => 128, 
+        '#required' => FALSE,
+        '#weight' => 10,
+        '#default_value' => ''
+      );
+      $form['send_test_email']['test_mail_button'] = array(
+        '#type' => 'submit',
+        '#value' => t('<i class="fa fa-paper-plane" aria-hidden="true"></i> Send Test'),
+        '#weight' => 12,
+        '#submit' => array('lp_emails_send_test_email'),
+      );
+    break;
+    case 'customer_node_form':
+      $form['actions']['submit']['#submit'][] = 'lp_emails_form_node_form_submit_redirect';
+      if (!empty($form['actions']['delete'])) {
+        $form['actions']['delete']['#access'] = FALSE;
+        $form['delete'] = array(
+          '#markup' => t('<a class="btn btn-danger" href="@url"><span class="icon glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</a>', array('@url' => url('node/'.$form['nid']['#value'].'/delete'))),
+          '#weight' => 900,
+        );
+      }
+    break;
+  }
+}
+
+/**
+ * Implements hook_form_node_delete_confirm_alter().
+ */
+function lp_emails_form_node_delete_confirm_alter(&$form, &$form_state, $form_id) {
+  if ($form['#node']->type == 'customer') {
+    drupal_set_title('Are you sure?');
+    $form['description']['#markup'] = 'Deleting a contact cannot be undone.';
+  }
+}
+
+
+/**
+ * Implements hook_form_profile2_form_alter()
+ */
+function lp_emails_form_profile2_form_alter(&$form, &$form_state){
+  if ($form['#form_id'] == 'user_register_form') {
+    $form['profile_main']['field_header_image']['#access'] = FALSE;
+    $form['profile_main']['field_logo']['#access'] = FALSE;
+    $form['#after_build'][] = 'lp_emails_user_register_form_after_build';
+  }
+}
+
+/**
+ * Implements hook_form_alter()
+ */
+function lp_emails_form_alter(&$form, &$form_state, $form_id){
+  if ($form_id == 'stripe_subscription_subscription_form') {
+    $form['#after_build'][] = 'lp_emails_user_register_form_after_build';
+  }
+}
+
+/**
+ * Implements hook_form_feeds_import_form_alter().
+ */
+function lp_emails_form_feeds_import_form_alter(&$form, &$form_state) {
+  $form['feeds']['FeedsCSVParser']['delimiter']['#access'] = FALSE;
+  $form['feeds']['FeedsCSVParser']['no_headers']['#access'] = FALSE;
+  $form['feeds']['FeedsCSVParser']['encoding']['#access'] = FALSE;
+  $form['feeds']['FeedsCSVParser']['help']['list']['#items'][0] = 'Be sure to write "no" in the E-mail Automation column if you don\'t wish to add these customers to the automated e-mails.<br/>
+  All customers once added will automatically start receiving your automated e-mails from the date they are added to the system.';
+  $form['feeds']['FeedsCSVParser']['help']['list']['#items'][1] = 'Quickly import customers using our Excel Template. '.l(t('Download it here.'), drupal_get_path('module', 'lp_emails').'/import_example.csv');
+}
+
+function lp_emails_user_register_form_after_build($form, &$form_state) {
+  foreach ($form['subscription']['plan_id']['#options'] as $key => $value) {
+    $form['subscription']['plan_id']['#options'][$key] = str_replace('$', '£', $value).'  (including VAT)';
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_feeds_presave().
+ */
+function lp_emails_feeds_presave($source, $entity, $item) {
+  if ($entity->type == 'customer') {
+    global $user;
+    $customer_exists = db_query("
+      SELECT 1 FROM {node} n
+      LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+      WHERE n.type = 'customer'
+      AND n.uid = :uid
+      AND ce.field_customer_email_email = :email
+    ", array(
+        ':uid' => $user->uid,
+        ':email' => $entity->field_customer_email[LANGUAGE_NONE][0]['email'],
+      )
+    )->fetchField();
+    if (!empty($customer_exists)) {
+      $entity->feeds_item->skip = TRUE;
+    } else {
+      $entity->uid = $user->uid;
+    }
+  }
+}
+
+/**
+ * Redirects the user back to the customers page.
+ */
+function lp_emails_form_node_form_submit_redirect($form, &$form_state) {
+  switch ($form['#form_id']) {
+    case 'campaign_node_form':
+      $form_state['redirect'] = 'campaigns';
+    break;
+    case 'email_template_node_form':
+      $form_state['redirect'] = 'email-templates';
+    break;
+    case 'customer_node_form':
+      $form_state['redirect'] = 'customers';
+    break;
+    default:
+    break;
+  }
+}
+
+/**
+ * Validate function for sending test emails.
+ */
+function lp_emails_form_email_template_node_form_test_email_validate(&$form, &$form_state) {
+  if ($form_state['values']['op'] == 'Send Test Email' && empty($form_state['values']['test_email'])) {
+    form_set_error('test_email', 'Please enter an email to send the test to.');
+    global $user;
+    $profile = profile2_load_by_user($user->uid);
+    if (empty($profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'])) {
+      form_set_error('test_email', 'You do not have a From address set. Please configure it first by editing your profile.');
+    }
+  }
+}
+
+/**
+ * Submit function for sending test emails.
+ */
+function lp_emails_send_test_email(&$form, &$form_state) {
+  global $user;
+  $profile = profile2_load_by_user($user->uid);
+  $to = $form_state['values']['test_email'];
+  $params = array(
+    'message' => $form_state['values']['body'][LANGUAGE_NONE][0]['value'],
+  );
+  $from = $profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'];
+  $result = drupal_mail('mailgun', 'test', $to, $GLOBALS['language'], $params, $from);
+  drupal_set_message(t('Test email sent from %from to %to. Please check your email', array('%from' => $result['from'], '%to' => $result['to'])), 'status');
+  node_form_submit($form, $form_state);
+}
+
+/**
+ * Implements hook_cronapi().
+function lp_emails_cronapi($op, $job = NULL) {
+  $items['lp_emails_campaigns_cron'] = array(
+    'description' => 'Send Scheduled Campaigns',
+    'rule' => '* * * * *',
+    'callback' => 'lp_emails_schedule_campaigns',
+  );
+  return $items;
+}
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function lp_emails_cron() {
+  lp_emails_schedule_campaigns();
+  lp_emails_schedule_email_templates();
+}
+
+
+/**
+ * Schedules Campaigns for sending.
+ */
+function lp_emails_schedule_campaigns() {
+  $current_date = date('Y-m-d H:i:s');
+
+  // Load all Campaigns that haven't been sent yet and should be.
+  // Not using EntityFieldQuery as it couldn't select NULL values for field_sent
+  // also using db_query for better performance (compared to db_select)
+  $campaigns = db_query("
+    SELECT nid, uid, field_target_all_customers_value, field_target_customers_value, field_target_customers_value2 FROM {node} n
+    LEFT JOIN {field_data_field_sent} fs ON fs.entity_id = n.nid
+    LEFT JOIN {field_data_field_send_date} sd ON n.nid = sd.entity_id
+    LEFT JOIN {field_data_field_target_all_customers} ac ON n.nid = ac.entity_id
+    LEFT JOIN {field_data_field_target_customers} tc ON n.nid = tc.entity_id
+    WHERE n.type = 'campaign'
+    AND fs.field_sent_value != 1
+    AND sd.field_send_date_value <= :send_date
+    ",
+    array(
+      ':send_date' => $current_date,
+    )
+  )->fetchAll();
+  foreach ($campaigns as $campaign) {
+    // Check if this user is an active subscriber
+    if (user_access('send loyalpilot campaigns', user_load($campaign->uid))) {
+      $sent_count = 0;
+      $customers = array();
+      $campaign_node = node_load($campaign->nid);
+      $profile = profile2_load_by_user($campaign->uid);
+      $text_version = drupal_html_to_text($campaign_node->body[LANGUAGE_NONE][0]['value']);
+
+      if (empty($profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'])) {
+        watchdog('lp_emails', 'Error: User :uid does not have a FROM address set, skipping campaign.', array(':uid' => $campaign->uid), WATCHDOG_ERROR);
+        continue;
+      }
+      $physical_address = $profile['main']->field_company[LANGUAGE_NONE][0]['value'] . ' ' . $profile['main']->field_address[LANGUAGE_NONE][0]['value'];
+
+      // Generate common assets (Logo & Header image)
+      $logo = '';
+      $header = '';
+      if (!empty($profile['main']->field_logo[LANGUAGE_NONE][0]['uri'])) {
+        $logo = '<img src="' . file_create_url($profile['main']->field_logo[LANGUAGE_NONE][0]['uri']) . '">';
+      }
+      if (!empty($campaign_node->field_header_image[LANGUAGE_NONE][0]['uri'])) {
+        $header = '<img src="' . file_create_url($campaign_node->field_header_image[LANGUAGE_NONE][0]['uri']) . '">';
+      } elseif (!empty($profile['main']->field_header_image[LANGUAGE_NONE][0]['uri'])) {
+        $header = '<img src="' . file_create_url($profile['main']->field_header_image[LANGUAGE_NONE][0]['uri']) . '">';
+      }
+
+      if (!empty($campaign->field_target_all_customers_value)) {
+        // Load all of the User's Customers
+        // while excluding those that have requested not to be contacted
+        $customers = db_query("
+          SELECT nid, title, field_customer_email_email FROM {node} n
+          LEFT JOIN {field_data_field_do_not_contact} dnc ON dnc.entity_id = n.nid
+          LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+          WHERE n.type = 'customer'
+          AND n.uid = :uid
+          AND dnc.field_do_not_contact_value != 1
+        ", array(
+            ':uid' => $campaign->uid,
+          )
+        )->fetchAll();
+      } else {
+        // Load all of the User's Customers that are within the Campaigns target date(s)
+        // while excluding those that have requested not to be contacted
+        if ($campaign->field_target_customers_value == $campaign->field_target_customers_value2) {
+          $customers = db_query("
+            SELECT nid, title, field_date_of_visit_value, field_customer_email_email FROM {node} n
+            LEFT JOIN {field_data_field_date_of_visit} dov ON dov.entity_id = n.nid
+            LEFT JOIN {field_data_field_do_not_contact} dnc ON dnc.entity_id = n.nid
+            LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+            WHERE n.type = 'customer'
+            AND n.uid = :uid
+            AND dnc.field_do_not_contact_value != 1
+            AND field_date_of_visit_value >= :target_date
+          ", array(
+              ':uid' => $campaign->uid,
+              ':target_date' => $campaign->field_target_customers_value,
+            )
+          )->fetchAll();
+        } else {
+          $full_day = new DateTime($campaign->field_target_customers_value2);
+          $customers = db_query("
+            SELECT nid, title, field_date_of_visit_value, field_customer_email_email, field_first_name_value FROM {node} n
+            LEFT JOIN {field_data_field_date_of_visit} dov ON dov.entity_id = n.nid
+            LEFT JOIN {field_data_field_do_not_contact} dnc ON dnc.entity_id = n.nid
+            LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+            LEFT JOIN {field_data_field_first_name} fn ON fn.entity_id = n.nid
+            WHERE n.type = 'customer'
+            AND n.uid = :uid
+            AND dnc.field_do_not_contact_value != 1
+            AND field_date_of_visit_value BETWEEN :target_date1 AND :target_date2
+          ", array(
+              ':uid' => $campaign->uid,
+              ':target_date1' => $campaign->field_target_customers_value,
+              ':target_date2' => $full_day->modify("+86399 seconds")->format("Y-m-d H:i:s")
+            )
+          )->fetchAll();
+        }
+      }
+      foreach ($customers as $customer) {
+        // Add unsubscribe link
+        $unsubscribe_link = lp_emails_generate_customer_unsubscribe_link($customer->nid);
+        $tracking_img = lp_emails_generate_tracking_image_link($campaign->nid, $customer->nid);
+        $html = '<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>' . $campaign_node->title . '</title>
+    <style type="text/css">
+    /* -------------------------------------
+        INLINED WITH https://putsmail.com/inliner
+    ------------------------------------- */
+    /* -------------------------------------
+        RESPONSIVE AND MOBILE FRIENDLY STYLES
+    ------------------------------------- */
+    @media only screen and (max-width: 620px) {
+      table[class=body] h1 {
+        font-size: 28px !important;
+        margin-bottom: 10px !important; }
+      table[class=body] p,
+      table[class=body] ul,
+      table[class=body] ol,
+      table[class=body] td,
+      table[class=body] span,
+      table[class=body] a {
+        font-size: 16px !important; }
+      table[class=body] .wrapper,
+      table[class=body] .article {
+        padding: 10px 0 !important; }
+      table[class=body] .content {
+        padding: 0 !important; }
+      table[class=body] .container {
+        padding: 0 !important;
+        width: 100% !important; }
+      table[class=body] .main {
+        border-left-width: 0 !important;
+        border-radius: 0 !important;
+        border-right-width: 0 !important; }
+      table[class=body] .btn table {
+        width: 100% !important; }
+      table[class=body] .btn a {
+        width: 100% !important; }
+      table[class=body] .img-responsive {
+        height: auto !important;
+        max-width: 100% !important;
+        width: auto !important; }}
+    /* -------------------------------------
+        PRESERVE THESE STYLES IN THE HEAD
+    ------------------------------------- */
+    @media all {
+      .ExternalClass {
+        width: 100%; }
+      .ExternalClass,
+      .ExternalClass p,
+      .ExternalClass span,
+      .ExternalClass font,
+      .ExternalClass td,
+      .ExternalClass div {
+        line-height: 100%; }
+      .apple-link a {
+        color: inherit !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+        text-decoration: none !important; }
+      .btn-primary table td:hover {
+        background-color: #34495e !important; }
+      .btn-primary a:hover {
+        background-color: #34495e !important;
+        border-color: #34495e !important; } }
+    </style>
+  </head>
+  <body class="" style="background-color:#ffffff;font-family:sans-serif;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.4;margin:0;padding:0;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;">
+    <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;background-color:#ffffff;width:100%;">
+      <tr>
+        <td style="font-family:sans-serif;font-size:14px;vertical-align:top;">&nbsp;</td>
+        <td class="container" style="font-family:sans-serif;font-size:14px;vertical-align:top;display:block;max-width:580px;padding:10px 0;width:580px;Margin:0 !important;">
+          <div class="content" style="box-sizing:border-box;display:block;Margin:0;max-width:580px;padding:10px 0;">
+            <!-- START CENTERED WHITE CONTAINER -->
+            <table class="main" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;background:#fff;border-radius:3px;width:100%;">
+              <!-- START MAIN CONTENT AREA -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                      ' . $logo . '
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                      ' . $header . '
+                  </td>
+                </tr>
+              </table>
+              <tr>
+                <td class="wrapper" style="font-family:sans-serif;font-size:14px;vertical-align:top;box-sizing:border-box;padding:20px 0;">
+                  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;width:100%;">
+                    <tr>
+                      <td style="font-family:sans-serif;font-size:14px;vertical-align:top;">
+                        '.$campaign_node->body[LANGUAGE_NONE][0]['value'].'
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- END MAIN CONTENT AREA -->
+            </table>
+            <!-- START FOOTER -->
+            <div class="footer" style="clear:both;padding-top:10px;text-align:left;width:100%;">
+              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;width:100%;">
+                <tr>
+                  <td class="content-block" style="font-family:sans-serif;font-size:14px;vertical-align:top;color:#999999;font-size:12px;text-align:left;">
+                     Don\'t like these emails? <a href="' . $unsubscribe_link . '" style="color:#3498db;text-decoration:underline;color:#999999;font-size:12px;text-align:left;">Unsubscribe</a>.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="content-block" style="font-family:sans-serif;font-size:14px;vertical-align:top;color:#999999;font-size:12px;text-align:left;">
+                     ' . $physical_address . '
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <!-- END FOOTER -->
+            <!-- END CENTERED WHITE CONTAINER -->
+            <img src="' . $tracking_img . '">
+          </div>
+        </td>
+        <td style="font-family:sans-serif;font-size:14px;vertical-align:top;">&nbsp;</td>
+      </tr>
+    </table>
+  </body>
+</html>
+';
+        $search = array('%last-name%', '%first-name%', '%LAST-NAME%', '%FIRST-NAME%');
+        $replace = array($customer->title, $customer->field_first_name_value, $customer->title, $customer->field_first_name_value);
+        $final = str_replace($search, $replace, array($html, $text_version));
+        $message = array(
+          'from' => $profile['main']->field_name[LANGUAGE_NONE][0]['value'] . ' <' . $profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'] . '>',
+          'to' => $customer->field_customer_email_email,
+          'subject' => $campaign_node->title,
+          'text' => $final[1] . "To unsubscribe please visit this URL $unsubscribe_link",
+          'html' => $final[0],
+          'params' => array(
+            'message' => $campaign_node->body[LANGUAGE_NONE][0]['value'] . "<br/><br/>To unsubscribe please click <a href='$unsubscribe_link'>here</a>",
+          ),
+        );
+        $queue = DrupalQueue::get('mailgun_queue', TRUE);
+        $queue->createItem($message);
+        $sent_count++;
+      }
+    }
+    $campaign_node->field_sent[LANGUAGE_NONE][0]['value'] = 1;
+    $campaign_node->field_campaign_sent_count[LANGUAGE_NONE][0]['value'] = $sent_count;
+    node_save($campaign_node);
+  }
+}
+
+/**
+ * Generates the actual emails that get sent out.
+ */
+function lp_emails_generate_email() {
+  // TODO Consolidate email generation here to clean up code
+}
+
+/**
+ * Schedules Email Templates for sending.
+ */
+function lp_emails_schedule_email_templates() {
+  // Need to have a table to track which users have already received this email in the chain
+
+  // Load all Email Templates using db_query for better performance (compared to db_select)
+  $email_templates = db_query("
+    SELECT nid, uid, field_interval_interval, field_interval_period FROM {node} n
+    LEFT JOIN {field_data_field_interval} fi ON fi.entity_id = n.nid
+    WHERE n.type = 'email_template'
+  ")->fetchAll();
+
+  foreach ($email_templates as $email_template) {
+    $account = user_load($email_template->uid);
+    if (user_access('send loyalpilot email templates', $account)) {
+      $customers = array();
+      $email_node = node_load($email_template->nid);
+      $profile = profile2_load_by_user($email_template->uid);
+      $text_version = drupal_html_to_text($email_node->body[LANGUAGE_NONE][0]['value']);
+
+      if (empty($profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'])) {
+        watchdog('lp_emails', 'Error: User :uid does not have a FROM address set, skipping email template.', array(':uid' => $email_node->uid), WATCHDOG_ERROR);
+        continue;
+      }
+      $physical_address = $profile['main']->field_company[LANGUAGE_NONE][0]['value'] . '<br/>' . $profile['main']->field_address[LANGUAGE_NONE][0]['value'];
+
+      // Generate common assets (Logo & Header image)
+      $logo = '';
+      $header = '';
+      if (!empty($profile['main']->field_logo[LANGUAGE_NONE][0]['uri'])) {
+        $logo = '<img src="' . file_create_url($profile['main']->field_logo[LANGUAGE_NONE][0]['uri']) . '">';
+      }
+      if (!empty($email_node->field_header_image[LANGUAGE_NONE][0]['uri'])) {
+        $header = '<img src="' . file_create_url($email_node->field_header_image[LANGUAGE_NONE][0]['uri']) . '">';
+      } elseif (!empty($profile['main']->field_header_image[LANGUAGE_NONE][0]['uri'])) {
+        $header = '<img src="' . file_create_url($profile['main']->field_header_image[LANGUAGE_NONE][0]['uri']) . '">';
+      }
+
+      // Load all of the User's Customers that should but have not received the email yet
+      // while excluding those that have requested not to be contacted
+      $target_date = new DateTime();
+      $customers = db_query("
+        SELECT nid, title, field_customer_email_email FROM {node} n
+        LEFT JOIN {field_data_field_do_not_contact} dnc ON dnc.entity_id = n.nid
+        LEFT JOIN {field_data_field_exclude_from_automation} fea ON fea.entity_id = n.nid
+        LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+        LEFT JOIN {field_data_field_first_name} fn ON fn.entity_id = n.nid
+        WHERE n.type = 'customer'
+        AND n.uid = :uid
+        AND n.created <= :target_date
+        AND dnc.field_do_not_contact_value != 1
+        AND fea.field_exclude_from_automation_value != 1
+        AND n.nid NOT IN (
+          SELECT cnid FROM {customers_email_templates}
+          WHERE enid = :enid
+        )
+        ",
+        array(
+          ':uid' => $account->uid,
+          ':target_date' => $target_date->modify("-{$email_template->field_interval_interval} {$email_template->field_interval_period}s")->getTimestamp(),
+          ':enid' => $email_template->nid
+        )
+      )->fetchAll();
+
+      foreach ($customers as $customer) {
+        // Add unsubscribe link
+        $unsubscribe_link = lp_emails_generate_customer_unsubscribe_link($customer->nid);
+        $tracking_img = lp_emails_generate_tracking_image_link($email_template->nid, $customer->nid);
+        $html = '<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>' . $email_node->title . '</title>
+    <style type="text/css">
+    /* -------------------------------------
+        INLINED WITH https://putsmail.com/inliner
+    ------------------------------------- */
+    /* -------------------------------------
+        RESPONSIVE AND MOBILE FRIENDLY STYLES
+    ------------------------------------- */
+    @media only screen and (max-width: 620px) {
+      table[class=body] h1 {
+        font-size: 28px !important;
+        margin-bottom: 10px !important; }
+      table[class=body] p,
+      table[class=body] ul,
+      table[class=body] ol,
+      table[class=body] td,
+      table[class=body] span,
+      table[class=body] a {
+        font-size: 16px !important; }
+      table[class=body] .wrapper,
+      table[class=body] .article {
+        padding: 10px 0 !important; }
+      table[class=body] .content {
+        padding: 0 !important; }
+      table[class=body] .container {
+        padding: 0 !important;
+        width: 100% !important; }
+      table[class=body] .main {
+        border-left-width: 0 !important;
+        border-radius: 0 !important;
+        border-right-width: 0 !important; }
+      table[class=body] .btn table {
+        width: 100% !important; }
+      table[class=body] .btn a {
+        width: 100% !important; }
+      table[class=body] .img-responsive {
+        height: auto !important;
+        max-width: 100% !important;
+        width: auto !important; }}
+    /* -------------------------------------
+        PRESERVE THESE STYLES IN THE HEAD
+    ------------------------------------- */
+    @media all {
+      .ExternalClass {
+        width: 100%; }
+      .ExternalClass,
+      .ExternalClass p,
+      .ExternalClass span,
+      .ExternalClass font,
+      .ExternalClass td,
+      .ExternalClass div {
+        line-height: 100%; }
+      .apple-link a {
+        color: inherit !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+        text-decoration: none !important; }
+      .btn-primary table td:hover {
+        background-color: #34495e !important; }
+      .btn-primary a:hover {
+        background-color: #34495e !important;
+        border-color: #34495e !important; } }
+    </style>
+  </head>
+  <body class="" style="background-color:#ffffff;font-family:sans-serif;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.4;margin:0;padding:0;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;">
+    <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;background-color:#ffffff;width:100%;">
+      <tr>
+        <td style="font-family:sans-serif;font-size:14px;vertical-align:top;">&nbsp;</td>
+        <td class="container" style="font-family:sans-serif;font-size:14px;vertical-align:top;display:block;max-width:580px;padding:10px 0;width:580px;Margin:0 !important;">
+          <div class="content" style="box-sizing:border-box;display:block;Margin:0;max-width:580px;padding:10px 0;">
+            <!-- START CENTERED WHITE CONTAINER -->
+            <table class="main" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;background:#fff;border-radius:3px;width:100%;">
+              <!-- START MAIN CONTENT AREA -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                      ' . $logo . '
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                      ' . $header . '
+                  </td>
+                </tr>
+              </table>
+              <tr>
+                <td class="wrapper" style="font-family:sans-serif;font-size:14px;vertical-align:top;box-sizing:border-box;padding:20px 0;">
+                  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;width:100%;">
+                    <tr>
+                      <td style="font-family:sans-serif;font-size:14px;vertical-align:top;">
+                        '.$email_node->body[LANGUAGE_NONE][0]['value'].'
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- END MAIN CONTENT AREA -->
+            </table>
+            <!-- START FOOTER -->
+            <div class="footer" style="clear:both;padding-top:10px;text-align:left;width:100%;">
+              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;width:100%;">
+                <tr>
+                  <td class="content-block" style="font-family:sans-serif;font-size:14px;vertical-align:top;color:#999999;font-size:12px;text-align:left;">
+                     Don\'t like these emails? <a href="' . $unsubscribe_link . '" style="color:#3498db;text-decoration:underline;color:#999999;font-size:12px;text-align:left;">Unsubscribe</a>.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="content-block" style="font-family:sans-serif;font-size:14px;vertical-align:top;color:#999999;font-size:12px;text-align:left;">
+                     ' . $physical_address . '
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <!-- END FOOTER -->
+            <!-- END CENTERED WHITE CONTAINER -->
+            <img src="' . $tracking_img . '">
+          </div>
+        </td>
+        <td style="font-family:sans-serif;font-size:14px;vertical-align:top;">&nbsp;</td>
+      </tr>
+    </table>
+  </body>
+</html>
+';
+        $search = array('%last-name%', '%first-name%', '%LAST-NAME%', '%FIRST-NAME%');
+        $replace = array($customer->title, $customer->field_first_name_value, $customer->title, $customer->field_first_name_value);
+        $final = str_replace($search, $replace, array($html, $text_version));
+        $message = array(
+          'from' => $profile['main']->field_name[LANGUAGE_NONE][0]['value'] . ' <' . $profile['main']->field_from_email_address[LANGUAGE_NONE][0]['email'] . '>',
+          'to' => $customer->field_customer_email_email,
+          'subject' => $email_node->title,
+          'text' => $final[1] . "To unsubscribe please visit this URL $unsubscribe_link",
+          'html' => $final[0],
+          'params' => array(
+            'message' => $email_node->body[LANGUAGE_NONE][0]['value'] . "<br/><br/>To unsubscribe please click <a href='$unsubscribe_link'>here</a>",
+          ),
+        );
+        try {
+          db_insert('customers_email_templates')
+            ->fields(array(
+              'cnid' => $customer->nid,
+              'enid' => $email_template->nid,
+              'sent' => time(),
+            ))
+            ->execute();
+          $queue = DrupalQueue::get('mailgun_queue', TRUE);
+          $queue->createItem($message);
+        } catch (PDOException $e) {
+          watchdog('lp_emails', 'Error: cnid %cnid enid %enid PDOException %message', array('%cnid' => $customer-nid, '%enid' => $email_template-nid, '%message' => $e->getMessage()), WATCHDOG_ERROR);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Generates unique Customer unsubscribe links.
+ */
+function lp_emails_generate_customer_unsubscribe_link($nid){
+  $node = node_load($nid);
+  if ($node->type = 'customer') {
+    return url("list-unsubscribe/{$node->field_customer_email[LANGUAGE_NONE][0]['email']}/{$node->uid}/" . drupal_hmac_base64($node->field_date_of_visit[LANGUAGE_NONE][0]['value'], drupal_get_hash_salt() . $node->uid . $node->nid), array('absolute' => TRUE));
+  }
+  return FALSE;
+}
+
+/**
+ * Generates unique tracking codes for images.
+ */
+function lp_emails_generate_tracking_image_link($campaign_nid, $customer_nid){
+  // TODO track opens only once for the same customer
+  $customer = node_load($customer_nid);
+  if ($customer->type = 'customer') {
+    return url("track-opens/{$campaign_nid}/{$customer->field_customer_email[LANGUAGE_NONE][0]['email']}/{$customer->uid}/" . drupal_hmac_base64($customer->field_date_of_visit[LANGUAGE_NONE][0]['value'], drupal_get_hash_salt() . $customer->uid . $customer->nid), array('absolute' => TRUE)).'.gif';
+  }
+  return FALSE;
+}
+
+/**
+ * Verifies unsubscribe link hashes and controls access.
+ */
+function lp_emails_track_opens($campaign_nid, $email, $author_uid, $hash){
+  $hash = substr($hash, 0, -4);
+  $nid = db_query("
+    SELECT nid FROM {node} n
+    LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+    WHERE n.type = 'customer'
+    AND n.uid = :uid
+    AND field_customer_email_email = :email
+  ", array(
+      ':uid' => $author_uid,
+      ':email' => $email,
+    )
+  )->fetchField();
+
+  $customer_node = node_load($nid);
+  $verify = drupal_hmac_base64($customer_node->field_date_of_visit[LANGUAGE_NONE][0]['value'], drupal_get_hash_salt() . $customer_node->uid . $customer_node->nid);
+  if ($verify == $hash) {
+    $campaign_node = node_load($campaign_nid);
+    $current_count = intval($campaign_node->field_campaign_opens[LANGUAGE_NONE][0]['value']);
+    $current_count++;
+    $campaign_node->field_campaign_opens[LANGUAGE_NONE][0]['value'] = $current_count;
+    node_save($campaign_node);
+    global $base_url;
+    drupal_add_http_header('Content-type', 'image/gif;');
+    drupal_add_http_header('Content-Disposition', 'inline; filename=\''.$hash.'.gif\'');
+    echo file_get_contents(drupal_get_path('module', 'lp_emails').'/track.gif');
+    exit;
+  }
+  return FALSE;
+}
+
+/**
+ * Sets a Customer's Do Not Contact field to TRUE.
+ */
+function lp_emails_unsubscribe_customer($email, $author_uid) {
+  $nid = db_query("
+    SELECT nid FROM {node} n
+    LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+    WHERE n.type = 'customer'
+    AND n.uid = :uid
+    AND field_customer_email_email = :email
+  ", array(
+      ':uid' => $author_uid,
+      ':email' => $email,
+    )
+  )->fetchField();
+
+  $node = node_load($nid);
+  $node->field_do_not_contact[LANGUAGE_NONE][0]['value'] = 1;
+  node_save($node);
+  return 'You have successfully unsubscribed.';
+}
+
+/**
+ * Verifies unsubscribe link hashes and controls access.
+ */
+function lp_emails_unsubscribe_link_access($email, $author_uid, $hash){
+  $nid = db_query("
+    SELECT nid FROM {node} n
+    LEFT JOIN {field_data_field_customer_email} ce ON ce.entity_id = n.nid
+    WHERE n.type = 'customer'
+    AND n.uid = :uid
+    AND field_customer_email_email = :email
+  ", array(
+      ':uid' => $author_uid,
+      ':email' => $email,
+    )
+  )->fetchField();
+
+  $node = node_load($nid);
+  $verify = drupal_hmac_base64($node->field_date_of_visit[LANGUAGE_NONE][0]['value'], drupal_get_hash_salt() . $node->uid . $node->nid);
+  if ($verify == $hash) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function lp_emails_views_pre_render(&$view) {
+  if ($view->name == 'customers' && $view->current_display == 'page') {
+    global $user;
+    $customers = db_query("
+      SELECT COUNT(*) FROM {node} n
+      LEFT JOIN {field_data_field_do_not_contact} fdnc ON fdnc.entity_id = n.nid
+      WHERE uid = :uid
+      AND type = 'customer'
+      AND field_do_not_contact_value <> 1
+    ", array(':uid' => $user->uid))->fetchField();
+    $max = 0;
+    $limits = db_query("SELECT nl.nlimit, r.rid FROM {node_limit_type} t LEFT JOIN {node_limit} nl ON t.lid = nl.lid LEFT JOIN {node_limit_userofrole} r ON t.lid = r.lid WHERE t.type = 'customer'")->fetchAll();
+    foreach ($limits as $limit) {
+      if (!empty($user->roles[$limit->rid]) && $limit->nlimit >= $max) {
+        $max = $limit->nlimit;
+      }
+    }
+    $view->header['area_text_custom']->options['content'] = '<div class="col-md-6">' . $view->header['area_text_custom']->options['content'] . '</div><div class="col-md-6"><div class="customer-count"><strong>' . $customers . ' / ' . $max . ' Customers</strong></div></div><div class="clearfix"></div>';
+    if (empty($view->result)) {
+      if (empty($view->exposed_input)) {
+        $view->exposed_widgets = NULL;
+        // Create a "Global: Textarea" view element.
+        $options = array(
+          'id' => 'button2',
+          'table' => 'views',
+          'field' => 'area',
+          'empty' => FALSE,
+          'content' => '<div class="empty-customers-view alert alert-danger" role="alert"><i class="fa fa-exclamation-circle" aria-hidden="true"></i> Looks like you haven\'t added any customers yet!
+Why don\'t you create one by clicking the button above or import a CSV file to add multiple at once?</div>',
+          'format' => 'full_html',
+          'tokenize' => 0,
+        );
+      } else {
+        // Create a "Global: Textarea" view element.
+        $options = array(
+          'id' => 'button2',
+          'table' => 'views',
+          'field' => 'area',
+          'empty' => FALSE,
+          'content' => '<div class="alert alert-warning" role="alert"><i class="fa fa-exclamation-circle" aria-hidden="true"></i> No customers match these criteria.</div>',
+          'format' => 'full_html',
+          'tokenize' => 0,
+        );
+      }
+      $view->set_item('default', 'empty', 'button2', $options);
+    }
+  }
+  if ($view->name == 'email_templates' && $view->current_display == 'page') {
+    if (!empty($view->result)) {
+      foreach ($view->result as $key => $value) {
+        $res = 0;
+        $res = db_query(
+          "SELECT COUNT(*) AS res FROM customers_email_templates WHERE enid = :nid", 
+          array(':nid' => $view->result[$key]->nid)
+        )->fetchField();
+        $view->result[$key]->field_field_campaign_opens_1[0]['rendered']['#markup'] = $res;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function lp_emails_views_query_alter(&$view, &$query) {
+  if ($view->name == 'email_templates') {
+    $view->query->orderby[0]['field'] = "
+      CASE field_data_field_interval_field_interval_period
+        WHEN 'hour' THEN 1
+        WHEN 'day' THEN 2
+        WHEN 'week' THEN 3
+        WHEN 'month' THEN 4
+        WHEN 'year' THEN 5
+        ELSE 6
+      END";
+  }
+}
+
+/**
+ * Implements hook_node_limit_sql().
+ */
+function lp_emails_node_limit_sql($lid, SelectQuery $select) {
+  // Do not count Customers that have requested not to be contacted towards the global limit for this user
+  $fields =& $select->getExpressions();
+  global $user;
+  $inactive = db_query("
+    SELECT COUNT(*) FROM {node} n
+    LEFT JOIN {field_data_field_do_not_contact} fdnc ON fdnc.entity_id = n.nid
+    WHERE uid = :uid
+    AND type = 'customer'
+    AND field_do_not_contact_value = 1
+  ", array(':uid' => $user->uid))->fetchField();
+  $fields['number']['expression'] .= " - $inactive";
+}
+
+/**
+ * Implements hook_node_insert().
+function lp_emails_node_insert($node) {
+  if (in_array($node->type, array('campaign', 'email_template'))) {
+    lp_emails_process_node($node);
+  }
+}
+ */
+
+/**
+ * Implements hook_node_update().
+ */
+function lp_emails_node_update($node) {
+  if (in_array($node->type, array('campaign', 'email_template'))) {
+    //lp_emails_process_node($node);
+//dpm($node, 'node');
+  }
+}
+
+/**
+ * Schedules sends for Email Templates and Campaigns.
+function lp_emails_process_node($node) {
+  dpm($node,'node');
+  if ($node->type == 'campaign') {
+    $job = array(
+      'type' => 'send_campaign',
+      'id' => $node->id,
+      'period' => 86400 * 7,
+      'crontab' => '* * * * *',
+    );
+  }
+}
+ */
+
+/**
+ * Implements hook_cron_job_scheduler_info().
+function lp_emails_cron_job_scheduler_info() {
+  $scheduler = array();
+  $scheduler['lp_emails_send'] = array(
+    'worker callback' => 'lp_emails_send_emails',
+  );
+  return $scheduler;
+}
+ */

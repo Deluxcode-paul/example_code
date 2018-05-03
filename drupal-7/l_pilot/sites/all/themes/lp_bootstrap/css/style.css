@@ -1,0 +1,269 @@
+html,
+body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  line-height: 30px;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+thead .views-field,
+thead .views-exposed-widget > label {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  color: #242424;
+}
+
+.main-container.container {
+  padding-bottom: 50px;
+}
+
+h1.page-header {
+  font-size: 52px;
+  margin: 2rem 0 1.5rem;
+  line-height: 1.4;
+  text-align: center;
+  padding: 50px 0;
+}
+
+#block-system-main > .view > .view-header > .col-md-6 {
+  margin: 20px 0;
+}
+
+.btn-success {
+  background-color: #6bc971;
+}
+
+.navbar {
+  background: rgb(138, 113, 184);
+}
+
+.navbar > .container {
+  padding-top: 10px;
+}
+
+.navbar > .container > .navbar-header > a.logo {
+  margin-top: 6.5px;
+}
+
+.navbar > .container > .navbar-header > a.logo > img {
+  height: 50px;
+}
+
+.navbar-default .navbar-brand {
+  color: #fff;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+}
+
+.navbar-default .navbar-nav > li > a {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  color: rgb(68, 51, 99);
+  outline: 0;
+  text-decoration: none;
+  background-color: transparent;
+  transition-property: background-color,box-shadow,border,color,opacity,transform;
+  transition-duration: 0.3s;
+}
+
+.navbar-default .navbar-nav > a,
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus,
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a {
+  color: #fff;
+  background-color: transparent;
+}
+
+textarea,
+textarea.form-control,
+select.form-control,
+input.form-control,
+input[type=text],
+input[type=password],
+input[type=email],
+input[type=number],
+[type=text].form-control,
+[type=password].form-control,
+[type=email].form-control,
+[type=tel].form-control,
+[contenteditable].form-control {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding-left: 5px;
+}
+
+input.form-control.date-clear,
+select#edit-plan-id {
+  padding-left: 10px;
+}
+
+select#edit-stripe-expiry-year,
+select#edit-stripe-expiry-month {
+  padding: 5px 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.views-exposed-form .views-exposed-widgets {
+  margin-bottom: 1.5em;
+}
+
+.empty-customers-view {
+  margin-top: 25px;
+  background-color: #2196F3;
+}
+
+.views-exposed-form .views-exposed-widget .btn {
+  margin-top: 2.8em;
+}
+
+.view.view-email-templates .view-item.thumbnail {
+  padding: 0 10px;
+  min-height: 165px;
+}
+
+.view.view-campaigns .view-item.thumbnail {
+  padding: 0 10px;
+  min-height: 200px;
+}
+
+.view.view-email-templates a.btn.btn-default.btn-success,
+.view.view-campaigns a.btn.btn-default.btn-success {
+  width: 100%;
+}
+
+.thumbnail-header {
+  height: 55px;
+  overflow: hidden;
+}
+
+.container-inline .form-item-masquerade-user-field .dropdown {
+  display:block;
+}
+
+#edit-test-mail-button {
+  margin-bottom: 1rem;
+}
+
+.node-campaign-form .date-float {
+  clear: both;
+  float: left;
+  width: auto;
+}
+
+.node-campaign-form .date-padding,
+.node-campaign-form .date-padding div,
+.node-campaign-form .date-padding label {
+  padding: 0px !important;
+}
+
+.node-campaign-form .date-no-float {
+  clear: left;
+  float: left;
+  width: auto;
+}
+
+.node-campaign-form .date-no-float.end-date-wrapper.container-inline-date {
+  clear: none;
+}
+
+.node-campaign-form .end-date-wrapper .form-item label {
+  float: left;
+  padding-right: 20px;
+  padding-top: 35px;
+}
+
+.node-email_template-form .form-item.form-item-field-interval-und-0-interval.form-type-textfield.form-group {
+  width: 50px;
+  float: left;
+  margin-right: 1rem;
+}
+
+.node-email_template-form .form-item.form-item-field-interval-und-0-interval.form-type-textfield.form-group > input {
+  text-align: center;
+}
+
+.node-email_template-form .form-item.form-item-field-interval-und-0-period.form-type-select.form-group {
+  float: left;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.node-email_template-form .form-item.form-item-field-interval-und-0-period.form-type-select.form-group select {
+  padding: 0 13px 0 10px;
+}
+
+.customer-count {
+  float: right;
+}
+
+#views-exposed-form-customers-page input {
+  width: 200px;
+}
+
+#views-exposed-form-customers-page select {
+  width: 130px;
+}
+.jquery_colorpicker
+{
+  display:inline-block;;
+    margin-left:10px;
+}
+.jquery_colorpicker div
+{
+  display:inline-block;
+
+}
+.jquery_colorpicker div.jquery-colorpicker-input-watcher-processed
+{
+  margin-right: 10px;
+}
+.jquery-colorpicker-input-watcher-processed
+{
+  margin-bottom: -10px;
+}
+#edit-field-button-color
+{
+  float:left;
+}
+#edit-field-button-text-color
+{
+  float:left;
+  margin-left:35px;
+  clear:right;
+}
+#edit-field-downloadable-content-pdf
+{
+  clear:both;
+}
+#edit-field-downloadable-content-pdf-und-0-remove-button
+{
+  margin-left: 15px;
+  padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+.colorpicker_field input[type=text], .colorpicker_hex input[type=text]
+{
+  font-size: 10px !important;
+  border: 1px solid transparent !important;
+  box-shadow: none  !important;
+}
+a.dlink:hover
+{
+  color:#fff;
+}
+.ajax-progress-throbber
+{
+  padding-left:5px;
+}

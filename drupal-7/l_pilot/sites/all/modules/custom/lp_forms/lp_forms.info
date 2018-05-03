@@ -1,0 +1,11 @@
+name = LP Forms API
+description = Provides API For Client Form Functionality for LoyalPilot
+core = 7.x
+package = LoyalPilot
+
+dependencies[] = features
+dependencies[] = jquery_colorpicker
+dependencies[] = node_save_redirect
+dependencies[] = views_field_view
+dependencies[] = lp_forms_structure
+
