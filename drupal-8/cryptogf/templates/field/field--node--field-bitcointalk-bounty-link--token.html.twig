@@ -1,9 +1,0 @@
-<div{{ attributes.addClass('card', 'center') }}>
-  <div class="text">
-    <div class="head uppercase">{{ label }}</div>
-    {% for item in items %}
-      <a{{ item.attributes.addClass('link') }} rel="external" href="{{ item.content }}"><i class="fas fa-share-square"></i> {{ ('bitcointalk.org'|t) }}</a>
-    {% endfor %}
-  </div>
-</div>
-

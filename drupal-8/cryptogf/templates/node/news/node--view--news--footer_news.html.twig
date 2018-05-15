@@ -1,9 +1,0 @@
-<div{{ attributes.addClass('one_news') }}>
-  {% if content.field_image|render|striptags|trim %}
-    <figure>{{ content.field_image }}</figure>
-  {% endif %}
-  <div class="text">
-    <a href="{{ url }}" class="name">{{ label }}</a>
-    <div class="date">{{ date }}</div>
-  </div>
-</div>
