@@ -1,0 +1,15 @@
+{% if q is not empty %}
+{{ q }}
+{% endif %}
+<div class="filter">
+  <div class="cell cell--search_holder">
+    {{ form.s }}
+  </div>
+  <div class="cell">
+    {{ form.c }}
+  </div>
+  <div class="cell">
+    {{ form.status }}
+  </div>
+</div>
+{{ form|without('s', 'c', 'status') }}

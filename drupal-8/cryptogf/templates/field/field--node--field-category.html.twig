@@ -1,0 +1,8 @@
+<div{{ attributes.addClass('category') }}>
+  <ul>
+    <div class="heading">{{ 'Category'|t }}</div>
+    {% for item in items %}
+      <li{{ item.attributes }}>{{ item.content }}</li>
+    {% endfor %}
+  </ul>
+</div>

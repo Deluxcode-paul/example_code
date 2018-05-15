@@ -1,0 +1,64 @@
+<div{{ attributes.addClass('content_block', 'news_content', 'border_block') }}>
+  {{ title_prefix }}
+  <div class="heading">{{ label }}</div>
+  {{ title_suffix }}
+  {% if content.field_image %}
+    <div class="img_container">
+      {{ content.field_image }}
+      {% if content.field_image.0['#item'].alt %}
+        <div class="lab">
+          {{ content.field_image.0['#item'].alt }}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+  <div{{ content_attributes }}>
+    {{ content|without('field_image', 'field_news_tags', 'field_news_comments') }}
+  </div>
+  <div class="bottom">
+    <div class="control">
+      <div class="button like">
+        0
+      </div>
+      <div class="button dislike">
+        0
+      </div>
+      <div class="button spam">
+        0
+        <div class="popup_block">
+          <div class="heading">Какие нарушения <br> на этой странице вы видете?</div>
+          <form action="">
+            <ul>
+              <li><input type="checkbox"><span>Спам</span></li>
+              <li><input type="checkbox"><span>Скрытая реклама</span></li>
+              <li><input type="checkbox"><span>Ненармативная лексика</span></li>
+              <li><input type="checkbox"><span>Контент +18</span></li>
+              <li><input type="checkbox"><span>Запрщенный контент</span></li>
+            </ul>
+            <div class="submit_button"><i class="fa fa-paper-plane" aria-hidden="true"></i> Отправить</div>
+          </form>
+        </div>
+      </div>
+      <div class="button share">
+        {{ ('share'|t) }}
+        <div class="popup_block">
+          <ul>
+            <li><a href="#" rel="nofollow"><i class="fab fa-facebook-f"></i></a></li>
+            <li><a href="#" rel="nofollow"><i class="fab fa-twitter"></i></a></li>
+            <li><a href="#" rel="nofollow"><i class="fab fa-google-plus-g "></i></a></li>
+            <li><a href="#" rel="nofollow"><i class="fab fa-linkedin-in"></i></a></li>
+            <li><a href="#" rel="nofollow"><i class="fab fa-stumbleupon"></i></a></li>
+            <li><a href="#" rel="nofollow"><i class="fab fa-pinterest-p "></i></a></li>
+            <li><a href="#" rel="nofollow"><i class="fab fa-dribbble "></i></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    {{ content.field_news_tags }}
+  </div>
+</div>
+<div class="ad_ban">
+  <img src="http://f.server347.com/godfather/images/adimg2.png" alt="">
+  <a href="#" rel="nofollow">{{ ('Place advertising on the site'|t) }}</a>
+</div>
+{{ content.field_news_comments }}

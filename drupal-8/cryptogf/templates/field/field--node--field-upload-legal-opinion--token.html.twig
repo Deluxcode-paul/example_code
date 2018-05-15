@@ -1,0 +1,8 @@
+<div{{ attributes.addClass('field') }}>
+  {% if label_hidden is empty %}
+    <h3{{ title_attributes }}>{{ label }}</h3>
+  {% endif %}
+  {% for item in items %}
+    <div><a class="uppercase download_button" href="{{ item.content|render|striptags|trim }}" rel="external"><span>{% if label_hidden is empty %}{{ ('Download'|t) }}{% else %}{{ label }}{% endif %}</span> <i class="fas fa-download"></i></a></div>
+  {% endfor %}
+</div>

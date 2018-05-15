@@ -1,0 +1,9 @@
+<{{ wrapper_element }} {{ attributes }}>
+  <figure><img src="{{ base_path ~ directory }}/assets/images/total_coin_img.png" alt=""></figure>
+  <div class="text">
+    {% if title %}
+      <div class="head uppercase">{{ title }}</div>
+    {% endif %}
+    {{children}}
+  </div>
+</{{ wrapper_element }}>

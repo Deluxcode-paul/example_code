@@ -1,0 +1,34 @@
+<div id="wrapper">
+  <div id="layout" class="layout">
+    {% include directory ~ '/templates/misc/icons.html.twig' %}
+    {% if page.header %}
+      <header role="banner">
+        <div class="limit">
+          {{ page.header }}
+          {{ page.header_right }}
+        </div>
+      </header>
+    {% endif %}
+    {% if cryptogf_slogan %}
+      <div class="limit">
+        <h1 class="slogan">{{ cryptogf_slogan|striptags('<br><strong><span><a>')|raw }}</h1>
+      </div>
+    {% endif %}
+    <div class="limit">
+      <div class="reg_log_block">
+        <div class="login_block">
+          {% if page.highlighted or page.help %}
+            {{ page.highlighted }}
+            {{ page.help|without('cryptogf_local_tasks', 'quicktabsuserprofiletabs') }}
+          {% endif %}
+          {{ page.content|without('cryptogf_local_tasks', 'quicktabsuserprofiletabs') }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if page.footer %}
+    <footer id="footer" role="contentinfo">
+      {{ page.footer }}
+    </footer>
+  {% endif %}
+</div>

@@ -1,0 +1,9 @@
+<div{{ attributes.addClass('border_block') }}>
+  {% if label_hidden is empty %}
+    <div{{ title_attributes.addClass('heading uppercase') }}>{{ label }}</div>
+  {% endif %}
+  {% for item in items %}
+    <div{{ item.attributes }}>{{ item.content }}</div>
+  {% endfor %}
+</div>
+

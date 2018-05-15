@@ -1,0 +1,8 @@
+{% if label_hidden is empty and items.0.content['#paragraph'].field_td_image|keys %}
+  <h3{{ title_attributes }}>{{ label }}</h3>
+  <div class="table_slider">
+    {% for item in items %}
+      <div{{ item.attributes.addClass('bonus_card') }}>{{ item.content }}</div>
+    {% endfor %}
+  </div>
+{% endif %}

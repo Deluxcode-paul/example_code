@@ -1,0 +1,12 @@
+<div{{ attributes }}>
+  {{ title_prefix }}
+  {{ title_suffix }}
+  {% block content %}
+    <div class="language_holder">
+      {% if label %}
+        <span{{ title_attributes.addClass('block-title') }}>{{ label }}:</span>
+      {% endif %}
+      {{ content }}
+    </div>
+  {% endblock %}
+</div>

@@ -1,0 +1,7 @@
+{% if q is not empty %}
+  {{ q }}
+{% endif %}
+<div class="form_holder">
+  {{ form|without('items_per_page') }}
+</div>
+{{ form.items_per_page }}

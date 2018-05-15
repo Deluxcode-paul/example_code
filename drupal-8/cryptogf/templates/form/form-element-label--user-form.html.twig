@@ -1,0 +1,13 @@
+{%
+  set classes = [
+    'label',
+    'form-label',
+    title_display == 'after' ? 'option',
+    title_display == 'invisible' ? 'visually-hidden',
+    required ? 'js-form-required',
+    required ? 'form-required',
+  ]
+%}
+{% if title is not empty or required -%}
+  <label{{ attributes.addClass(classes) }}>{{ title }}{% if 'edit-field-avatar' in element['#id'] %} <span class="form-label-description">({{ ('Photo format .jpg, .png Not more than 2 mb'|t) }})</span>{% endif %}</label>
+{%- endif %}

@@ -1,0 +1,17 @@
+<a href="{{ url }}" {{ attributes.addClass('news_card_holder') }}>
+  {{ title_prefix }}
+  {{ title_suffix }}
+  <div class="date">{{ date }}</div>
+  <div class="text">
+    {{ label }}
+    <div class="buttons_container">
+      <div class="button"><i class="far fa-thumbs-up"></i></div>
+      <div class="button"><i class="far fa-thumbs-down"></i></div>
+    </div>
+  </div>
+  <div class="grad"></div>
+  {{ content|without('links') }}
+  {% if content.field_image.0|keys is empty %}
+    <img src="{{ base_path ~ directory }}/assets/images/default-news.png" alt="" />
+  {% endif %}
+</a>

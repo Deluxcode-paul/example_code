@@ -1,0 +1,20 @@
+<div{{ attributes }}>
+  {% if content %}
+    <div class="user_heading">
+      {% if content.field_avatar %}
+        <div class="avatar">
+          {{ content.field_avatar }}
+        </div>
+      {% endif %}
+      <div class="user_name">
+        <div class="name">{{ content.field_first_name|render|striptags|trim }}{#{% if logged_in %} <a href="#"><i class="fas fa-edit"></i></a>{% endif %}#}</div>
+        {% if 'expert' in user.getroles  %}
+          <div class="status">{{ ('Expert'|t) }}</div>
+        {% elseif 'authenticated' in user.getroles  %}
+          <div class="status">{{ ('Registered'|t) }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {{- content|without('field_avatar', 'field_first_name') -}}
+  {% endif %}
+</div>

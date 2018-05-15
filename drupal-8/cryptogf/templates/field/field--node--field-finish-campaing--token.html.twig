@@ -1,0 +1,10 @@
+<div class="card">
+  <figure><img src="{{ base_path ~ directory }}/assets/images/finish_campaing.png" alt=""></figure>
+  <div class="text">
+    <div class="head uppercase">{{ label }}</div>
+    {% for item in items %}
+      <div{{ attributes.addClass('big_text') }}>{{ item.content }}</div>
+    {% endfor %}
+  </div>
+</div>
+

@@ -1,0 +1,33 @@
+{%
+  set classes = [
+  'paragraph',
+  'paragraph--type--' ~ paragraph.bundle|clean_class,
+  view_mode ? 'paragraph--view-mode--' ~ view_mode|clean_class,
+  'road_card',
+]
+%}
+{% block paragraph %}
+  <div{{ attributes.addClass(classes) }}>
+    {% block content %}
+      {% if content.field_roadmap_date|render|striptags|trim %}
+        {% set date_color = ' green' %}
+        {#{% set roadmap_date = content.field_roadmap_date|render|striptags|trim|date("U") %}#}
+        {#{% set now_date = "now"|date("U") %}#}
+        {#{% set roadmap_year = content.field_roadmap_date|render|striptags|trim|date("Y", false) %}#}
+        {#{% set now_year = "now"|date("Y") %}#}
+        {#{% if roadmap_date<=now_date %}#}
+          {#{% set date_color = ' green' %}#}
+        {#{% else %}#}
+          {#{% if now_year<roadmap_year %}#}
+            {#{% set date_color = '' %}#}
+          {#{% else %}#}
+            {#{% set date_color = ' red' %}#}
+          {#{% endif %}#}
+        {#{% endif %}#}
+        <div class="date{{ date_color }}">{{ content.field_roadmap_date }}</div>
+      {% endif %}
+      <div class="name">{{ content.field_roadmap_stage_name }}</div>
+      <div class="road_description">{{ content.field_roadmap_description }}</div>
+    {% endblock %}
+  </div>
+{% endblock paragraph %}

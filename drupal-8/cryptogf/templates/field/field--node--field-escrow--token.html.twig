@@ -1,0 +1,5 @@
+<div{{ attributes.addClass('team_card_container') }}>
+  {% for item in items %}
+    <div{{ item.attributes.addClass('team_card') }}>{{ item.content }}</div>
+  {% endfor %}
+</div>

@@ -1,0 +1,79 @@
+global-styling:
+  version: 1.x
+  css:
+    theme:
+      assets/css/font-awesome.css: {}
+      assets/css/fontawesome-all.css: {}
+      assets/css/jquery.scrollbar.css: {}
+      assets/css/jquery.dataTables.min.css: {}
+      assets/css/mediaqueries.css: {}
+      assets/css/reset.css: {}
+      assets/css/selectize.css: {}
+      assets/css/slick.css: {}
+      assets/css/alert.css: {}
+      assets/css/style.css: {}
+      assets/css/fixes.css: {}
+      assets/css/all.css: {}
+      assets/css/fix/fix2.css: {}
+      assets/css/custom.css: {}
+      assets/css/ie_style.css: { IE: 'lte IE 9', '!IE': false }
+  js:
+    assets/js/slick.js: {}
+    assets/js/jquery.scrollbar.js: {}
+    assets/js/jquery.bpopup.min.js: {}
+    assets/js/behaviors/main.behaviors.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax
+    - core/drupalSettings
+    - core/jquery
+    - core/jquery.once
+    - core/jquery.ui.selectmenu
+bef-auto-submit:
+  version: 3.x
+  js:
+    assets/js/libraries-override/better_exposed_filters/auto_submit.js: {}
+  dependencies:
+    - core/drupal.debounce
+down-count:
+  version: 1.0.x
+  js:
+    assets/js/jquery.downCount.js: {}
+    assets/js/behaviors/down-count.behaviors.js: {}
+chart:
+  version: 1.0.x
+  js:
+    https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js: { external: true }
+    assets/js/behaviors/chart.behaviors.js: {}
+circliful:
+  version: 1.0.x
+  css:
+    theme:
+      assets/css/jquery.circliful.css: {}
+  js:
+    assets/js/jquery.circliful.min.js: {}
+    assets/js/behaviors/circliful.behaviors.js: {}
+masonry:
+  version: 1.0.x
+  js:
+    assets/js/masonry.pkgd.min.js: {}
+    assets/js/behaviors/masonry.behaviors.js: {}
+background_check:
+  version: 1.0.x
+  js:
+    assets/js/background-check.js: {}
+    assets/js/behaviors/background-check.behaviors.js: {}
+sticky:
+  version: 2.1.x
+  js:
+    assets/js/hc-sticky.js: {}
+    assets/js/behaviors/sticky.behaviors.js: {}
+morris:
+  version: 1.x
+  css:
+    theme:
+      assets/css/morris.css: {}
+  js:
+    assets/js/raphael.min.js: {}
+    assets/js/morris.js: {}
+    assets/js/behaviors/morris.behaviors.js: {}

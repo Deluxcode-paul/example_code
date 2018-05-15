@@ -1,0 +1,10 @@
+<div{{ attributes.addClass('box') }}>
+  {{ title_prefix }}
+  {% if label %}
+    <div{{ title_attributes.addClass('heading') }}>{{ label }}</div>
+  {% endif %}
+  {{ title_suffix }}
+  {% block content %}
+    {{ content }}
+  {% endblock %}
+</div>

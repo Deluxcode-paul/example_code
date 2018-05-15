@@ -1,0 +1,28 @@
+{%
+  set classes = [
+    dom_id ? 'js-view-dom-id-' ~ dom_id,
+  ]
+%}
+{{ attach_library('cryptogf/masonry') }}
+{{ attach_library('cryptogf/background_check') }}
+<div{{ attributes.addClass(classes) }}>
+  {{ title_prefix }}
+  {{ title }}
+  {{ title_suffix }}
+  <div class="news_block">
+    <div class="news_container">
+      {{ header }}
+      {{ exposed }}
+      {{ attachment_before }}
+      <div class="grid">
+        {{ rows }}
+      </div>
+      {{ empty }}
+      {{ pager }}
+      {{ attachment_after }}
+      {{ more }}
+      {{ footer }}
+    </div>
+  </div>
+  {{ feed_icons }}
+</div>

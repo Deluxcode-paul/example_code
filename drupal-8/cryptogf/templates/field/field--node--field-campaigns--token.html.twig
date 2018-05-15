@@ -1,0 +1,10 @@
+<div{{ attributes.addClass('campaing') }}>
+  {% if label_hidden is empty %}
+    <h2{{ title_attributes }}>{{ label }}</h2>
+  {% endif %}
+  <div class="campaing_card_container">
+    {% for item in items %}
+      <div{{ item.attributes.addClass('campaing_card') }}>{{ item.content }}<a href="#" rel="nofollow">{{ ('Participate'|t) }}</a></div>
+    {% endfor %}
+  </div>
+</div>

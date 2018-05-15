@@ -1,0 +1,13 @@
+<div class="write">
+  <form{{ attributes }}>
+    {% if user.account.name %}
+      <div class="avatar">
+        <div class="photo">
+          <img src="{{ file_url(user.user_picture.value) }}" alt="" />
+        </div>
+        <div class="name" title="{{ user.account.name }}">{{ user.account.name }}</div>
+      </div>
+    {% endif %}
+    {{ children }}
+  </form>
+</div>

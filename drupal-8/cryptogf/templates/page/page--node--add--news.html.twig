@@ -1,0 +1,62 @@
+{{ attach_library('cryptogf/sticky') }}
+<div id="wrapper">
+  <div id="layout" class="layout">
+    {% include directory ~ '/templates/misc/icons.html.twig' %}
+    {% if page.header %}
+      <header role="banner">
+        <div class="limit">
+          {{ page.header }}
+          {{ page.header_right }}
+        </div>
+      </header>
+    {% endif %}
+    {{ page.navbar }}
+    {% if page.highlighted or page.help %}
+      <div class="limit clearfix">
+        {{ page.highlighted }}
+        {{ page.help }}
+      </div>
+    {% endif %}
+    <div class="content_block">
+      <div class="limit">
+        <div class="content">
+          <a id="main-content" tabindex="-1"></a>
+          {{ page.content }}
+        </div>
+        <div class="sidebar">
+          <div class="sidebar_content js-sticky">
+            <div class="border_block">
+              <h3 class="head">{{ ('Statistics'|t) }}</h3>
+              <div class="caption ttn">{{ ('General reaction'|t) }}</div>
+              <ul class="reaction">
+                <li><i class="far fa-thumbs-up"></i><span>0</span></li>
+                <li><i class="far fa-thumbs-down"></i><span>0</span></li>
+                <li><i class="far fa-star"></i><span>0</span></li>
+                <li><i class="fas fa-share-alt"></i><span>0</span></li>
+                <li><i class="fas fa-comment-dots"></i><span>0</span></li>
+              </ul>
+              <div class="caption ttn">{{ ('Level of interest'|t) }}</div>
+              <div class="interes_bar">
+                <div class="bar">
+                  <div class="progress" style="width: 0%;"></div>
+                </div>
+                <span class="index">0</span> of <span class="end">0</span>
+              </div>
+              <a href="#" rel="nofollow" class="trans">{{ ('Translate article'|t) }}</a> <span class="plus right">+10C</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% if page.fixed_menu %}
+      <div id="fixed_menu" role="complementary">
+        {{ page.fixed_menu }}
+      </div>
+    {% endif %}
+  </div>
+  {% if page.footer %}
+    <footer id="footer" role="contentinfo">
+      {{ page.footer }}
+    </footer>
+  {% endif %}
+</div>
