@@ -1,0 +1,13 @@
+{% if label_hidden is empty %}
+  <strong>{{ label }}:</strong>
+  <br/>
+{% endif %}
+{% for item in items %}
+  {% if label_hidden is empty %}
+    <span{{ item.attributes.addClass('code') }}>{{ item.content }}</span>
+  {% else %}
+    {% set item_title = label %}
+    {% set item_url = item.content|render|striptags|trim %}
+    {{ link(item_title, item_url, { 'rel': 'external' }) }}
+  {% endif %}
+{% endfor %}

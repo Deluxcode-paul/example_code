@@ -1,0 +1,20 @@
+{% if label_hidden %}
+  {% if multiple %}
+    <div{{ attributes.addClass('field') }}>
+      {% for item in items %}
+        <div{{ item.attributes.addClass('rating') }}><span>{{ item.content }}</span></div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% for item in items %}
+      <div{{ attributes.addClass('field', 'rating') }}><span>{{ item.content }}</span></div>
+    {% endfor %}
+  {% endif %}
+{% else %}
+  <div{{ attributes.addClass('field') }}>
+    <h3{{ title_attributes }}>{{ label }}</h3>
+    {% for item in items %}
+      <div{{ item.attributes.addClass('rating') }}><span>{{ item.content }}</span></div>
+    {% endfor %}
+  </div>
+{% endif %}

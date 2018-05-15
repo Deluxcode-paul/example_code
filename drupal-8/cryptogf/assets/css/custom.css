@@ -1,0 +1,84 @@
+.reg_log_block .login_block .check_box label {
+    padding-left: 30px; }
+.reg_log_block .login_block .check_box label:before {
+    content: "";
+    width: 22px;
+    height: 22px;
+    background: url("../images/checkbox.png") 0 0 no-repeat;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    -webkit-transform: translate(0, -50%);
+    -moz-transform: translate(0, -50%);
+    -o-transform: translate(0, -50%);
+    -ms-transform: translate(0, -50%); }
+.reg_log_block .login_block .check_box input:checked + label:before {
+    background-position: -22px 0;
+}
+
+.reg_log_block .login_block #edit-account .form-item{
+    margin-bottom: 10px;
+}
+
+.reg_log_block .login_block #edit-account .js-form-type-password {
+    position: relative;
+}
+
+.reg_log_block .login_block .form_row .s-h-pass {
+    top: 22px;
+    bottom: unset;
+}
+
+#validate-path {
+    position: absolute;
+    right: 0;
+}
+#validate-path.valid {
+    color: #00c320;
+}
+#validate-path.novalid {
+    color: red;
+}
+
+.login_block .limit {
+    width: 100%;
+    min-width: 279px;
+}
+
+#edit-avatar-upload-button {
+    display: none;
+}
+
+.ui-selectmenu-open {
+    height: 300px;
+    overflow-y: auto;
+}
+
+.reg_log_block .login_block {
+    margin-top: -280px;
+}
+
+#fixed_menu {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    margin: auto;
+}
+
+#quicktabs-tabpage-home_tabs-2 .table table tbody > tr,
+#quicktabs-tabpage-home_tabs-1 .table table tbody > tr {
+    cursor: pointer;
+}
+
+#quicktabs-tabpage-home_tabs-0 .table table tbody > tr:hover,
+#quicktabs-tabpage-home_tabs-2 .table table tbody > tr:hover,
+#quicktabs-tabpage-home_tabs-1 .table table tbody > tr:hover {
+    background: #eee !important;
+}
+
+.team_card_container .team_card .photo img {
+    -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+    filter: grayscale(100%);
+}

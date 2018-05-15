@@ -1,0 +1,17 @@
+<div{{ attributes.addClass('news_text') }}>
+  {% if content.field_image is defined and content.field_image is not empty %}
+    <figure>{{ content.field_image }}</figure>
+  {% endif %}
+  <a href="{{ url }}" class="heading">{{ label }}</a>
+  {% if content.body is defined and content.body is not empty %}
+    <p>{{ content.body }}</p>
+  {% endif %}
+</div>
+<div class="bottom">
+  <div class="estimate">
+    <span><i class="fas fa-thumbs-up"></i></span>
+    <span><i class="fas fa-thumbs-down"></i></span>
+  </div>
+  <div class="date">{{ ('Published'|t) }}:  {{ date }}</div>
+  <a href="{{ url }}" class="see_more">{{ ('See more'|t) }} <i class="fas fa-long-arrow-alt-right"></i></a>
+</div>

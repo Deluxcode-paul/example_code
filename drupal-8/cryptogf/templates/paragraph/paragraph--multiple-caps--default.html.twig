@@ -1,0 +1,20 @@
+{% block paragraph %}
+  {% block content %}
+    <span class="js-multiple-header">{{ content.field_ri_title|render|striptags|trim }}</span>
+    <div class="sub js-multiple-content">
+      <table>
+        <tr>
+          <td>
+            {{ content.field_ri_info }}
+          </td>
+        </tr>
+        <tr>
+          <td><br></td>
+        </tr>
+        <tr>
+          <td>{{ ('Total'|t) }}: <span>{{ content.field_ri_amount }}</span></td>
+        </tr>
+      </table>
+    </div>
+  {% endblock %}
+{% endblock paragraph %}

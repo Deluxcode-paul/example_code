@@ -1,0 +1,10 @@
+<div{{ attributes.addClass('field') }}>
+  {% if label_hidden is empty %}
+    <h3{{ title_attributes }}>{{ label }}</h3>
+  {% endif %}
+  <ul class="multiple js-multiple">
+    {% for item in items %}
+      <li{{ item.attributes.addClass('js-multiple-item') }}>{{ item.content }}</li>
+    {% endfor %}
+  </ul>
+</div>

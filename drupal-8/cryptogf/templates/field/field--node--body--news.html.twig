@@ -1,0 +1,20 @@
+{% if label_hidden %}
+  {% if multiple %}
+    <div{{ attributes.addClass('field', 'field-body') }}>
+      {% for item in items %}
+        <div{{ item.attributes }}>{{ item.content }}</div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% for item in items %}
+      <div{{ attributes.addClass('field', 'field-body') }}>{{ item.content }}</div>
+    {% endfor %}
+  {% endif %}
+{% else %}
+  <div{{ attributes.addClass('field', 'field-body') }}>
+    <h3{{ title_attributes }}>{{ label }}</h3>
+    {% for item in items %}
+      <div{{ item.attributes }}>{{ item.content }}</div>
+    {% endfor %}
+  </div>
+{% endif %}

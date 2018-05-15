@@ -1,0 +1,11 @@
+{% if label_hidden is empty %}
+  <div{{ title_attributes.addClass('head') }}><span>{{ label }}</span></div>
+{% endif %}
+{% for item in items %}
+  {% if item.content|render|striptags|trim=='Yes' %}
+    <div{{ attributes.addClass('alarm') }}>{{ item.content }}</div>
+  {% else %}
+    <div{{ attributes.addClass('alarm', 'green') }}>{{ item.content }}</div>
+  {% endif %}
+{% endfor %}
+

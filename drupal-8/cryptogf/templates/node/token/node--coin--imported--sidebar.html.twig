@@ -1,0 +1,121 @@
+<article{{ attributes }}>
+  <div{{ content_attributes }}>
+    {{ title_prefix }}
+    {{ title_suffix }}
+    <div class="logo coin_logo">
+      {{ content.field_logo }}
+      {{ content.field_import_symbol }}
+    </div>
+    <hr/>
+    <div class="fin">
+      <table>
+        {% if content.field_import_price_usd %}
+          {% set change_24h = content.field_import_percent_change_24h|render|striptags|trim %}
+          <tr>
+            <td rowspan="3">
+              <div class="icon dollar"></div>
+            </td>
+            <td><i class="fas {% if '-' in change_24h %}fa-long-arrow-alt-down{% else %}fa-long-arrow-alt-up{% endif %}"></i> {{ ('Price'|t) }}:</td>
+          </tr>
+          <tr>
+            <td><b>{{ content.field_import_price_usd|render|striptags|trim }}</b> {{ ('USD'|t) }}{% if content.field_import_percent_change_24h %} <span{% if '-' in change_24h %} class="red"{% endif %}>({{ change_24h }}%)</span>{% endif %}</td>
+          </tr>
+          {% if content.field_import_price_btc %}
+            <tr>
+              <td>{{ content.field_import_price_btc|render|striptags|trim }} {{ ('BTC'|t) }}{# <span class="proc">(99.99%)</span>#}</td>
+            </tr>
+          {% endif %}
+          <tr><td colspan="3"><br></td></tr>
+        {% endif %}
+        {% if content.field_import_market_cap_usd %}
+          <tr>
+            <td rowspan="3">
+              <div class="icon coin"></div>
+            </td>
+            <td>{{ ('Market cap USD'|t) }}:</td>
+          </tr>
+          {% set mil = content.field_import_market_cap_usd|render|striptags|trim/1000000 %}
+          <tr>
+            <td><b>${{ mil|number_format(2, '.', ' ') }} {{ ('mil'|t) }}</b></td>
+          </tr>
+          {% if content.field_import_price_btc %}
+            <tr>
+              <td>{{ content.field_import_price_btc|render|striptags|trim }} {{ ('BTC'|t) }}{# <span class="proc">(99.99%)</span>#}</td>
+            </tr>
+          {% endif %}
+          <tr><td colspan="3"><br></td></tr>
+        {% endif %}
+        {% if content.field_import_24h_volume_usd %}
+          <tr>
+            <td rowspan="3">
+              <div class="icon hour"></div>
+            </td>
+            <td>{{ ('24h volume USD'|t) }}:</td>
+          </tr>
+          <tr>
+            {% set import_24h_volume = content.field_import_24h_volume_usd|render|striptags|trim/1000000 %}
+            <td><b>${{ import_24h_volume|number_format(2, '.', ' ') }} {{ ('mil'|t) }}</b></td>
+          </tr>
+          {% if content.field_import_price_btc %}
+            <tr>
+              <td>{{ content.field_import_price_btc|render|striptags|trim }} {{ ('BTC'|t) }}{# <span class="proc">(99.99%)</span>#}</td>
+            </tr>
+          {% endif %}
+          <tr><td colspan="3"><br></td></tr>
+        {% endif %}
+        {% set available_supply = content.field_import_available_supply|render|striptags|trim %}
+        {% set total_supply = content.field_import_total_supply|render|striptags|trim %}
+        {% if available_supply %}
+          {% set supply_part = total_supply/available_supply*100 %}
+        {% endif %}
+        <tr>
+          <td rowspan="3">
+            <div class="procent">{% if supply_part %}{{ supply_part|round(2, 'floor') }}%{% endif %}</div>
+          </td>
+          <td>{{ ('Circulating Supply'|t) }}:</td>
+        </tr>
+        {% if total_supply %}
+          <tr>
+            <td><b>{{ total_supply }} {{ ('BTC'|t) }}</b></td>
+          </tr>
+        {% endif %}
+        <tr>
+          <td></td>
+        </tr>
+        <tr><td colspan="3"><br></td></tr>
+        {% if available_supply %}
+          <tr>
+            <td rowspan="3"></td>
+            <td>{{ ('Max Supply'|t) }}:</td>
+          </tr>
+          <tr>
+            <td><b>{{ available_supply }} {{ ('BTC'|t) }}</b></td>
+          </tr>
+          <tr>
+            <td></td>
+          </tr>
+        {% endif %}
+      </table>
+    </div>
+    <hr>
+    <div class="status_frame">
+      {{ ('status'|t) }}
+      <span>Mineable</span>
+    </div>
+    <div class="status_links">
+      {% if content.field_website %}
+        <a href="{{ content.field_website|render|striptags|trim }}">
+          <img src="images/internet.png" alt="" />
+          <span>{{ ('Website'|t) }}</span>
+        </a>
+      {% endif %}
+      <a href="#">
+        <img src="images/search_ico.png" alt="" />
+        <span>{{ ('Explorer'|t) }}</span>
+      </a>
+    </div>
+    <hr>
+    <div class="heading">{{ ('Translate and earn money'|t) }}</div>
+    {% include directory ~ '/templates/misc/translate.html.twig' %}
+  </div>
+</article>

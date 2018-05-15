@@ -1,0 +1,66 @@
+<form{{ attributes }}>
+    {%  if element.email_verificatiom %}
+        {{ element }}
+    {%  elseif element.set_url %}
+        {{ element }}
+    {% elseif element.profile_setup %}
+        {{ element.welcome_message }}
+        <div class="text">
+            {{ element.top_text }}
+            <div class="form_row">
+                <div class="file">
+                    <div class="file_button">
+                        {{ element.avatar }}
+                        <i><span class="fas fa-cloud-upload-alt"></span></i>
+                    </div>
+                    <p>
+                        File doesn`t upload
+                        <br>
+                        min.size 300 p 300 px
+                    </p>
+                </div>
+            </div>
+            <div class="form_row">
+                {{ element.specialization }}
+            </div>
+            <div class="form_row">
+                {{ element.experience }}
+            </div>
+            <div class="form_row">
+                {{ element.country }}
+            </div>
+            <div class="form_row">
+                <div class="check_box" name="sing">
+                    {{ element.field_subscribe }}
+                </div>
+            </div>
+            {{ element.submit }}
+            {{ element.bottom }}
+            {{ element.form_build_id }}
+            {{ element.form_token }}
+            {{ element.form_id }}
+        </div>
+    {% else %}
+        {{ element.welcome_message }}
+        <div class="text">
+            {{ element.top_text }}
+            <div class="form_row">
+                {{ element.linkedin }}
+            </div>
+            <div class="form_row">
+                {{ element.facebook }}
+            </div>
+            <div class="form_row">
+                {{ element.twitter }}
+            </div>
+            <div class="form_row">
+                {{ element.website }}
+            </div>
+            {{ element.submit }}
+            {{ element.bottom }}
+            {{ element.form_build_id }}
+            {{ element.form_token }}
+            {{ element.form_id }}
+        </div>
+    {% endif %}
+</form>

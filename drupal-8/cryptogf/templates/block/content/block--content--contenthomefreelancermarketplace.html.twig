@@ -1,0 +1,64 @@
+<div{{ attributes.addClass('mainslider_section') }}>
+  <div class="limit">
+    {{ title_prefix }}
+    {% if label -%}
+      {% set field_body %}
+        {{ content.body }}
+      {% endset %}
+      <h2{{ title_attributes }}>{{ label }}{% if content.body %}<span>{{ field_body|striptags('<br><strong><span><a>')|raw }}</span>{% endif %}</h2>
+    {%- endif %}
+    {{ title_suffix }}
+    {% block content %}
+      <div class="mainslider_block">
+        <div class="slider_container">
+          <div class="main_slider" data-pause="5000">
+            {% for item in content.field_fm_items|field_target_entity %}
+              {% set slider_image = {
+                '#theme':      'image_style',
+                '#style_name': '560x330',
+                '#uri':        item.field_fm_slider_image.entity.uri[0].value,
+                '#alt':        '',
+                '#attributes': { class: 'swiper-image' },
+              } %}
+              {{ slider_image }}
+            {% endfor %}
+          </div>
+          <div class="slide_progress_bar"></div>
+        </div>
+        <div class="main_slider_navigation">
+          <ul class="slide_ul">
+            {% for item in content.field_fm_items|field_target_entity %}
+              {% if item.field_fm_text[0].value %}
+                <li class="slide_nav">
+                  {% if item.field_fm_icon.entity.field_svg_file.entity.filename[0].value %}
+                    <svg  width="38" height="40" class="icon icon--{{ item.field_fm_icon.entity.field_svg_file.entity.filename[0].value|replace({'.svg': ''}) }}">
+                      <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#{{ item.field_fm_icon.entity.field_svg_file.entity.filename[0].value|replace({'.svg': ''}) }}"></use>
+                    </svg>
+                  {% elseif item.field_fm_existing_icon[0].value %}
+                    <div class="ico {{ item.field_fm_existing_icon[0].value }}"></div>
+                  {% endif %}
+                  {{ item.field_fm_text[0].value }}
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+          <div class="sub_list_container">
+            {% for item in content.field_fm_items|field_target_entity  %}
+              {% if item.field_fm_list %}
+                <div class="sub_list">
+                  <ul>
+                    {% for fm_list in item.field_fm_list %}
+                      <li>{{ fm_list.value }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {{ content|without('body', 'field_fm_button', 'field_fm_items') }}
+      {{ content.field_fm_button }}
+    {% endblock %}
+  </div>
+</div>

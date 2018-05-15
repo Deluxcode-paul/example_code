@@ -1,0 +1,12 @@
+<{{ wrapper_element }} {{ attributes }}>
+  {% if title %}
+    <{{ title_element }}{% if collapsible %} class="field-group-toggler"{% endif %}>{{ title }}</{{ title_element }}>
+  {% endif %}
+  {% set item_url = element.field_url|render|striptags|trim %}
+  {% set item_title = element.field_project_readiness|render|striptags|trim %}
+  {% if item_url %}
+    {{ link(item_title, item_url, { 'class': ['uppercase', 'project_readiness_link']}) }}
+  {% elseif item_title %}
+    <div class="uppercase project_readiness_link">{{ item_title }}</div>
+  {% endif %}
+</{{ wrapper_element }}>

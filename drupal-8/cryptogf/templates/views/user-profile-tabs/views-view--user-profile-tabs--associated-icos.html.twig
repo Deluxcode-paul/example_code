@@ -1,0 +1,24 @@
+{%
+  set classes = [
+    dom_id ? 'js-view-dom-id-' ~ dom_id,
+  ]
+%}
+<div{{ attributes.addClass(classes) }}>
+  {{ title_prefix }}
+  {{ title }}
+  {{ title_suffix }}
+  {{ exposed }}
+  {{ attachment_before }}
+  {{ header }}
+  <div class="table edit">
+    {{ rows }}
+    {{ empty }}
+    <div class="pager_holder">
+      {{ pager }}
+    </div>
+  </div>
+  {{ attachment_after }}
+  {{ more }}
+  {{ footer }}
+  {{ feed_icons }}
+</div>

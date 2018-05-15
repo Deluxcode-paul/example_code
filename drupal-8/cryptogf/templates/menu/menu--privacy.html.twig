@@ -1,0 +1,10 @@
+{% import _self as menus %}
+{{ menus.menu_links(items, attributes, 0) }}
+{% macro menu_links(items, attributes, menu_level) %}
+  {% import _self as menus %}
+  {% if items %}
+    {% for item in items %}
+      {{ link(item.title, item.url) }}{% if loop.last is same as(false) %} | {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endmacro %}

@@ -1,0 +1,23 @@
+name: CryptoGodFather
+type: theme
+core: 8.x
+libraries:
+  - cryptogf/global-styling
+
+libraries-override:
+  # replace auto submit delay
+  # Drupal.debounce(triggerSubmit, 500)($target);
+  better_exposed_filters/auto_submit: cryptogf/bef-auto-submit
+
+regions:
+  header: Header
+  header_right: Header right
+  navbar: Navigation Bar
+  fixed_menu: Fixed menu
+  highlight: Highlighted content
+  help: Help
+  adv_content_top: Adv content (top)
+  content: Content
+  sidebar_first: Sidebar
+  footer_callouts: Footer callouts
+  footer: Footer

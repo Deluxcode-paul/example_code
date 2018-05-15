@@ -1,0 +1,9 @@
+<div{{ attributes.addClass('card', 'center') }}>
+  <div class="text">
+    <div class="head uppercase">{{ label }}</div>
+    {% for item in items %}
+      <div{{ item.attributes.addClass('big_text') }}>{{ item.content|render|striptags|trim|number_format(0, '', ' ') }}</div>
+    {% endfor %}
+  </div>
+</div>
+

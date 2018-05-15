@@ -1,0 +1,51 @@
+<{{ wrapper_element }} {{ attributes }}>
+  {% if element.field_token_crytocurrency|render|striptags|trim %}
+    {% if title %}
+      <{{ title_element }}>{{ title }}{{element.field_token_crytocurrency}}</{{ title_element }}>
+    {% endif %}
+    <div class="legal_block">
+      <p>{{ ("Transfer of values only with coins"|t) }}</p>
+    </div>
+    <div class="legal_block_image">
+      <figure><img src="{{ base_path ~ directory }}/assets/images/cryptocurrency.png" alt="" /></figure>
+    </div>
+  {% elseif element.field_token_equity_tokens|render|striptags|trim %}
+    {% if title %}
+      <{{ title_element }}>{{ title }}{{element.field_token_equity_tokens}}</{{ title_element }}>
+    {% endif %}
+    <div class="legal_block">
+      <p>{{ ("Represents the company's shares"|t) }}</p>
+    </div>
+    <div class="legal_block_image">
+      <figure><img src="{{ base_path ~ directory }}/assets/images/equity-tokens.png" alt="" /></figure>
+    </div>
+  {% elseif element.field_token_utility_tokens|render|striptags|trim %}
+    {% if title %}
+      <{{ title_element }}>{{ title }}{{element.field_token_utility_tokens}}</{{ title_element }}>
+    {% endif %}
+    <div class="legal_block">
+      <p>{{ ("Has some value within the business model of the online platform (reputation, scores for certain actions, game currency)."|t) }}</p>
+    </div>
+    <div class="legal_block_image">
+      <figure><img src="{{ base_path ~ directory }}/assets/images/utility-tokens.png" alt="" /></figure>
+    </div>
+    {% if element.field_utility_token_text|render|striptags|trim %}
+      <h3>{{ ('What kind of services or digital obligations is this coin baked?'|t) }}</h3>
+      <p>{{ element.field_utility_token_text|render|striptags|trim }}</p>
+    {% endif %}
+  {% elseif element.field_token_asset_backed_tokens|render|striptags|trim %}
+    {% if title %}
+      <{{ title_element }}>{{ title }}{{element.field_token_asset_backed_tokens}}</{{ title_element }}>
+    {% endif %}
+    <div class="legal_block">
+      <p>{{ ("Digital obligations for real goods or services (kilograms of carrots, hours of work of the builder, etc.)."|t) }}</p>
+    </div>
+    <div class="legal_block_image">
+      <figure><img src="{{ base_path ~ directory }}/assets/images/asset-backed-tokens.png" alt="" /></figure>
+    </div>
+    {% if element.field_assed_back_text|render|striptags|trim %}
+      <h3>{{ ('That kind of goods is this coin baked?'|t) }}</h3>
+      <p>{{ element.field_assed_back_text|render|striptags|trim }}</p>
+    {% endif %}
+  {% endif %}
+</{{ wrapper_element }}>

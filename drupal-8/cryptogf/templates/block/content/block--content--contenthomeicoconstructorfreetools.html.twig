@@ -1,0 +1,20 @@
+<div{{ attributes.addClass('tools') }}>
+  <div class="limit">
+    {{ title_prefix }}
+    {{ title_suffix }}
+    <div class="half">
+      <div class="crane">
+        {{ content.field_ico_constructor_button }}
+        {{ content.field_ico_constructor_image }}
+      </div>
+    </div>
+    <div class="half">
+      {% if label %}
+        <h2{{ title_attributes }}>{{ label }}</h2>
+      {% endif %}
+      {% block content %}
+        {{ content|without('field_ico_constructor_headertext', 'field_ico_constructor_image', 'field_ico_constructor_button') }}
+      {% endblock %}
+    </div>
+  </div>
+</div>

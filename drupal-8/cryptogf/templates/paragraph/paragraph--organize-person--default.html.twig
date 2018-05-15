@@ -1,0 +1,34 @@
+{%
+  set classes = [
+    'paragraph',
+  'paragraph--type--' ~ paragraph.bundle|clean_class,
+  view_mode ? 'paragraph--view-mode--' ~ view_mode|clean_class,
+  ]
+%}
+{% block paragraph %}
+  <div{{ attributes.addClass(classes) }}>
+    <div class="photo">
+      {{ content.field_photo }}
+    </div>
+    <div class="text">
+      {% if content.field_organize_name|render|striptags|trim %}
+        <div class="name">{{ content.field_organize_name }}</div>
+      {% endif %}
+      {% if content.field_organize_position|render|striptags|trim %}
+        <div class="stuf">{{ content.field_organize_position }}</div>
+      {% endif %}
+      {% if content.field_organize_experience|render|striptags|trim %}
+        {{ content.field_organize_experience }}
+        <p></p>
+      {% endif %}
+      <div class="bottom">
+        {% if content.field_citizen_ship|render|striptags|trim %}
+          <div class="citizenship">
+            {{ ('Citizenship'|t) }}: <span>{{ content.field_citizen_ship|render|striptags|trim }}</span>
+          </div>
+        {% endif %}
+        {{ content.field_organize_social_media_lnks }}
+      </div>
+    </div>
+  </div>
+{% endblock paragraph %}

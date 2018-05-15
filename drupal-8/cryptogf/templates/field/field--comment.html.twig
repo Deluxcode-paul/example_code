@@ -1,0 +1,11 @@
+<div{{ attributes.addClass('chat_block') }}>
+  {{ title_prefix }}
+  <div class="number_of_comments">{% if element['#object'].field_news_comments.0.comment_count %}{{ element['#object'].field_news_comments.0.comment_count }} {% endif %}{{ ('Comments'|t) }}</div>
+  {{ title_suffix }}
+  {% if comment_form %}
+    {{ comment_form }}
+  {% endif %}
+  <div class="clearfix">
+    {{ comments }}
+  </div>
+</div>
