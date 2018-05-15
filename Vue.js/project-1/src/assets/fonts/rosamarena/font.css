@@ -1,0 +1,18 @@
+@font-face {
+  font-family: 'RosaMarena';
+  src: url('RosaMarena.eot');
+  src: url('RosaMarena.woff2') format('woff2'),
+       url('RosaMarena.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'RosaMarena';
+  src: url('RosaMarena.woff') format('woff'),
+       url('RosaMarena.ttf') format('truetype'),
+       url('RosaMarena.svg#RosaMarena') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+

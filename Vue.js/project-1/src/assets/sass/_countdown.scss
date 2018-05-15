@@ -1,0 +1,43 @@
+/*--COUNTDOWN--*/
+.countdown {
+	.home {
+		height: 100vh;
+		&:after {
+			content: none;
+		}
+		.text_wrap {
+			h1 {
+				margin-bottom: 0;
+			}
+			p {
+				margin-bottom: 20px;
+			}
+		}
+		.timer {
+		    display: -webkit-box;
+		    display: -webkit-flex;
+		    display: -ms-flexbox;
+		    display: flex;
+		    -webkit-box-pack: center;
+		    -webkit-justify-content: center;
+		    -ms-flex-pack: center;
+		    justify-content: center;
+			text-shadow: 0 0 20px #48C8FF;
+			margin-bottom: 35px;
+			div {
+				min-width: 90px;
+				font-size: 40px;
+				span {
+					color: #B1CDF1;
+					display: block;
+					font-size: 16px;
+					font-weight: 400;
+				}
+			}
+		}
+		.btn {
+		    display: inline-block;
+		    line-height: 54px;
+		}
+	}
+}

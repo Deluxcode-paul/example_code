@@ -1,0 +1,12 @@
+@font-face {
+  font-family: 'Andada';
+  src: url('Andada-Regular.eot');
+  src: url('Andada-Regular.woff2') format('woff2'),
+       url('Andada-Regular.woff') format('woff'),
+       url('Andada-Regular.ttf') format('truetype'),
+       url('Andada-Regular.svg#Andada-Regular') format('svg'),
+       url('Andada-Regular.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+

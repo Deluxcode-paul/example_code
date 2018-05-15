@@ -1,0 +1,22 @@
+@font-face {
+  font-family: 'Nunito';
+  src: url('Nunito-Regular.eot');
+  src: url('Nunito-Regular.woff2') format('woff2'),
+       url('Nunito-Regular.woff') format('woff'),
+       url('Nunito-Regular.ttf') format('truetype'),
+       url('Nunito-Regular.svg#Nunito-Regular') format('svg'),
+       url('Nunito-Regular.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Nunito-ExtraLight';
+  src: url('Nunito-ExtraLight.eot');
+  src: url('Nunito-ExtraLight.woff2') format('woff2'),
+       url('Nunito-ExtraLight.woff') format('woff'),
+       url('Nunito-ExtraLight.ttf') format('truetype'),
+       url('Nunito-ExtraLight.svg#Nunito-ExtraLight') format('svg'),
+       url('Nunito-ExtraLight.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}

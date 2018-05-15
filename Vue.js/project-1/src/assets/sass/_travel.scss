@@ -1,0 +1,187 @@
+/*--TRAVEL--*/
+	.travel {
+	* {
+		font-family: $roboto;
+	}
+	.top {
+		width: 100%;
+		background: url(/static/travel/sand_back.png) center no-repeat;
+		-webkit-background-size: cover;
+		background-size: cover;
+		padding-top: 60px;
+		padding-bottom: 60px;
+		text-align: center;
+		position: relative;
+	    overflow: visible;
+		.leaf {
+			position: absolute;
+			z-index: 1;
+			&.leaf_left {
+				top: 0;
+				left: 0;
+				width: 35vw;
+				max-width: 650px;
+			}
+			&.leaf_right {
+				right: 0;
+				top: 25%;
+				width: 35vw;
+				max-width: 650px;
+			}
+			&.leaf_bottom {
+				top: 100%;
+				left: 50%;
+				-webkit-transform: translateX(-50%);
+				-ms-transform: translateX(-50%);
+				transform: translateX(-50%);
+			}
+		}
+		.macbook {
+			margin-top: 200px;
+			margin-bottom: 100px;
+		}
+		.logo {
+			position: absolute;
+			top: 55px;
+			right: 20px;
+		}
+		.text {
+			margin: auto;
+			max-width: 1060px;
+			width: 90%;
+			position: relative;
+			-webkit-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+			box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+			p {
+				background: $white;
+				font-size: 25px;
+				line-height: 45px;
+			    padding: 100px 60px 100px 60px;
+				position: relative;
+				z-index: 1;
+			}
+			.left_opacity {
+				top: -40px;
+			    left: -40px;
+			}
+			.left_full {
+				top: -110px;
+			    left: -60px;
+			    z-index: 2;
+			}
+			.right_full {
+				bottom: -60px;
+			    right: -40px;
+			}
+			.right_opacity {
+				bottom: 0px;
+			    right: -35px;
+			    z-index: 0;
+			}
+		}
+	}
+	.screenshots {
+		background: #f0f0f0;
+		.container {
+		    padding-top: 250px;
+		}
+		.browser_top {
+			left: 50%;
+			top: 0;
+		    -webkit-transform: translateX(-50%);
+		    -ms-transform: translateX(-50%);
+		    transform: translateX(-50%);
+		    position: relative;
+		}
+		.browser_back_left {
+			left: -10vw;
+		    top: 40%;
+		    position: absolute;
+		}
+		.browser_back_right {
+			right: -12vw;
+		    top: 35%;
+		    position: absolute;
+		}
+		.browser_front {
+			left: 50%;
+		    -webkit-transform: translateX(-50%);
+		    -ms-transform: translateX(-50%);
+		    transform: translateX(-50%);
+		    position: relative;
+		}
+		.popup {
+			right: 20px;
+		    top: 25%;
+			position: absolute;
+		}
+		.airplane {
+			position: fixed;
+			top: -200px;
+			left: -25%;
+		    width: 25%;
+		    z-index: 2;
+		    @include animation(4s);
+		    &.active {
+		    	top: 60%;
+				left: 50%;
+		    }
+		    &.away {
+		    	@include animation(1.5s);
+		    	top: 30%;
+		    	left: 100% !important;
+		    }
+		}
+	}
+	.magazines {
+		.flowers {
+			/* background: url(../img/travel/magazines_back.png) center no-repeat;
+			-webkit-background-size: cover;
+			background-size: cover;
+			height: 100vh; */
+			margin-bottom: -180px;
+			position: relative;
+			z-index: 1;
+			width: 100%;
+		}
+		.container {
+			/* display: -webkit-box;
+			display: -webkit-flex;
+			display: -ms-flexbox;
+			display: flex;
+			-webkit-flex-wrap: wrap;
+			-ms-flex-wrap: wrap;
+			flex-wrap: wrap; */
+		}
+		.magazines_wrap {
+			background: url(/static/travel/magazines_back_2.png) center no-repeat;
+			-webkit-background-size: cover;
+			background-size: cover;
+		    padding-top: 250px;
+		    padding-bottom: 120px;
+		    img {
+		    	width: 50%;
+	    	    float: left;
+		    }
+		    .text_wrap {
+		    	clear: both;
+		    }
+		}
+		p, span {
+			font-family: $allura;
+			bottom: 0;
+			color: $white;
+			width: 100%;
+			text-align: left;
+			clear: both;
+		}
+		p {
+			font-size: 185px;
+			padding-top: 150px;
+		}
+		span {
+			font-size: 70px;
+			display: block;
+		}
+	}
+}
