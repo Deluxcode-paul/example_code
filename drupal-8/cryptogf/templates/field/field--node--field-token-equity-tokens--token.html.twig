@@ -1,5 +1,0 @@
-{% for item in items %}
-  {% if item.content|render|striptags|trim!='Off' %}
-    <span{{ attributes }}>{{ label }}</span>
-  {% endif %}
-{% endfor %}

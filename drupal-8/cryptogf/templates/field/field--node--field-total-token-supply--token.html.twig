@@ -1,3 +1,0 @@
-{% for item in items %}
-  <div{{ attributes.addClass('head', 'uppercase') }}>{{ label }}:<br/>{{ item.content|render|striptags|trim|number_format(0, '', ' ') }} <span class="lowercase">{{ ('coins'|t) }}</span></div>
-{% endfor %}

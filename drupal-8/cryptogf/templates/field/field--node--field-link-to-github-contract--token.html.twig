@@ -1,7 +1,0 @@
-{% if label_hidden is empty %}
-  <strong>{{ label }}:</strong>
-  <br/>
-{% endif %}
-{% for item in items %}
-  <span{{ item.attributes }}><a href="{{ item.content|render|striptags|trim }}" rel="external">{% if label_hidden is empty %}{{ ('Visit Storage'|t) }}{% else %}{{ label }}{% endif %} <i class="fab fa-github"></i></a></span>
-{% endfor %}
